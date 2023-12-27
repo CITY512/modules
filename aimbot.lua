@@ -250,4 +250,5 @@ function aimbot:ComputePathAsync(startpos,target,projectilespeed,projectilegravi
 	local aimposition = Vector3.new(pos.X,(x * math.tan(c))+char.HumanoidRootPart.Position.Y,pos.Z)
 	return path,aimposition
 end
+getfenv().aimbot = aimbot
 return aimbot
