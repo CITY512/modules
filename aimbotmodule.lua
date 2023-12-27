@@ -224,7 +224,7 @@ function aimbot:ComputePathAsync(startpos,target,projectilespeed,projectilegravi
 			projduration = ((x / math.cos(c)) / v) + game.Players.LocalPlayer:GetNetworkPing()
 		end
 		table.insert(path,pos)
-	until pointduration > projduration or pointduration > maxduration or pos.Y < workspace.FallenPartsDestroyHeight -- Checks if the projectile hits their future position or if the player falls below the void
+	until pointduration > projduration or pointduration > maxduration or pos.Y < workspace.FallenPartsDestroyHeight -- Checks if the projectile reaches their future position or if the player falls below the void
 	floorhit:Destroy()
 	ceilinghit:Destroy()
 	wallhit:Destroy()
