@@ -11,17 +11,17 @@ function aimbot:ComputePathAsync(startpos,target,projectilespeed,projectilegravi
 	if not target.HumanoidRootPart:IsA("BasePart") then
 		error("HumanoidRootPart must be a BasePart")
 	end
-	
+
 	local accuracy = accuracy or 80
 	local maxduration = maxduration or 60 -- Stops infinite loop bug
 	local predictspamjump = predictspamjump or false
 	local IsAGun = IsAGun or false
-	
+
 	assert(typeof(predictspamjump) == "boolean", "A boolean must be provided for predictspamjump")
 	assert(typeof(IsAGun) == "boolean", "A boolean must be provided for IsAGun")
 	assert(typeof(accuracy) == "number", "A number value must be provided for the accuracy")
 	assert(typeof(maxduration) == "number", "A number value must be provided for the maxduration")
-	
+
 	local function tableconcat(t1,t2)
 		for i=1,#t2 do
 			t1[#t1+1] = t2[i]
@@ -29,7 +29,7 @@ function aimbot:ComputePathAsync(startpos,target,projectilespeed,projectilegravi
 		return t1
 	end
 	local lplr = game.Players.LocalPlayer
-	
+
 	local char = lplr.Character
 
 	local projduration = 0
@@ -46,7 +46,7 @@ function aimbot:ComputePathAsync(startpos,target,projectilespeed,projectilegravi
 	local movex = target.HumanoidRootPart.Parent.Humanoid.MoveDirection.X
 	local movey = target.HumanoidRootPart.Parent.Humanoid.MoveDirection.Y
 	local movez = target.HumanoidRootPart.Parent.Humanoid.MoveDirection.Z
-	
+
 	local floorhit = Instance.new("Part", workspace)
 	floorhit.Name = "floorhit"
 	floorhit.Anchored = true
@@ -67,7 +67,7 @@ function aimbot:ComputePathAsync(startpos,target,projectilespeed,projectilegravi
 	wallhit.Size = Vector3.new(4.25, 2.25, 1)
 	wallhit.Position = target.HumanoidRootPart.Position
 	wallhit.Orientation = target.HumanoidRootPart.Orientation * Vector3.new(0,1,0)
-	
+
 	local path = {}
 	local ignoredescendantsinstances = {target,char,floorhit,wallhit,ceilinghit} -- Blacklists parts and it's descendants
 
@@ -250,5 +250,4 @@ function aimbot:ComputePathAsync(startpos,target,projectilespeed,projectilegravi
 	local aimposition = Vector3.new(pos.X,(x * math.tan(c))+char.HumanoidRootPart.Position.Y,pos.Z)
 	return path,aimposition
 end
-getfenv().aimbot = aimbot
 return aimbot
