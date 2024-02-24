@@ -11,16 +11,19 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 		targethum = targetchar:FindFirstChildOfClass("Humanoid")
 		targetroot = targetchar:FindFirstChild("HumanoidRootPart")
 		if not targethum or not targetroot then
-			error("Target character must contain a humanoid and a root part")
+			error("Target character must contain a humanoid and a humanoidrootpart")
+		end
+		if not targetroot:IsA("BasePart") then
+			error("HumanoidRootPart must be a basepart")
 		end
 	else
 		error("Target character must be a character model")
 	end
 
 	assert(typeof(projectilespeed),"Projectile Speed is required")
-	assert(typeof(projectilespeed) == "number","Projectile Speed must be a number")
+	assert(typeof(projectilespeed) == "number","Projectile Speed must be a number (studs/s)")
 	assert(typeof(projectilegravity),"Projectile Gravity is required")
-	assert(typeof(projectilegravity) == "number","Projectile Gravity must be a number")
+	assert(typeof(projectilegravity) == "number","Projectile Gravity must be a number (studs/s²)")
 
 	local ignorelist = ignorelist or {}
 	local predictspamjump = predictspamjump or false
@@ -37,8 +40,8 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 	end
 	
 	assert(typeof(predictspamjump) == "boolean","predictspamjump must be a boolean")
-	assert(typeof(ping) == "number","ping must be a number")
-	assert(typeof(aimheight) == "number","aimheight must be a number")
+	assert(typeof(ping) == "number","ping must be a number (ms)")
+	assert(typeof(aimheight) == "number","aimheight must be a number (studs)")
 	assert(typeof(isagun) == "boolean","IsAGun must be a boolean")
 	assert(typeof(calculationspersecond) == "number","Calcuations Per Second must be a number")
 	assert(typeof(maxcalculations) == "number","Maximum Calculations must be a number")
