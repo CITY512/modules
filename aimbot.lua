@@ -1,253 +1,318 @@
 local aimbot = {}
 
-function aimbot:ComputePathAsync(startpos,target,projectilespeed,projectilegravity,predictspamjump,IsAGun,accuracy,maxduration) -- Gets the Vector3Value of where to aim at
-	assert(typeof(startpos) == "Vector3", "A Vector3 must be provided for the startpos")
-	assert(typeof(target) == "Instance", "A character model must be provided for the target")
-	assert(typeof(projectilespeed) == "number", "A number value must be provided for the projectile speed")
-	assert(typeof(projectilegravity) == "number", "A number value must be provided for the projectile gravity")
-	if not target:IsA("Model") or not target:FindFirstChildOfClass("Humanoid") or not target:FindFirstChild("HumanoidRootPart") then 
-		error("Target must be a model, must have a humanoid and a HumanoidRootPart inside")
-	end
-	if not target.HumanoidRootPart:IsA("BasePart") then
-		error("HumanoidRootPart must be a BasePart")
+function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectilegravity,ignorelist,predictspamjump,ping,aimheight,isagun,calculationspersecond,maxcalculations) -- Gets the Vector3Value of where to aim at
+	assert(typeof(startpos),"startpos is required")
+	assert(typeof(startpos) == "Vector3","startpos must be a Vector3")
+	assert(typeof(targetchar),"Target character is required")
+
+	local targethum
+	local targetroot
+	if targetchar.ClassName == "Model" then
+		targethum = targetchar:FindFirstChildOfClass("Humanoid")
+		targetroot = targetchar:FindFirstChild("HumanoidRootPart")
+		if not targethum or not targetroot then
+			error("Target character must contain a humanoid and a root part")
+		end
+	else
+		error("Target character must be a character model")
 	end
 
-	local accuracy = accuracy or 80
-	local maxduration = maxduration or 60 -- Stops infinite loop bug
+	assert(typeof(projectilespeed),"Projectile Speed is required")
+	assert(typeof(projectilespeed) == "number","Projectile Speed must be a number")
+	assert(typeof(projectilegravity),"Projectile Gravity is required")
+	assert(typeof(projectilegravity) == "number","Projectile Gravity must be a number")
+
+	local ignorelist = ignorelist or {}
 	local predictspamjump = predictspamjump or false
-	local IsAGun = IsAGun or false
+	local ping = ping or 50
+	local aimheight = aimheight or 0
+	local isagun = isagun or false
+	local calculationspersecond = calculationspersecond or 80
+	local maxcalculations = maxcalculations or 30*calculationspersecond
+	
+	assert(typeof(ignorelist) == "table","IgnoreList must be a table")
+	
+	for _, i in pairs(ignorelist) do
+		assert(typeof(i) == "Instance","Ignored instances must be Instances")
+	end
+	
+	assert(typeof(predictspamjump) == "boolean","predictspamjump must be a boolean")
+	assert(typeof(ping) == "number","ping must be a number")
+	assert(typeof(aimheight) == "number","aimheight must be a number")
+	assert(typeof(isagun) == "boolean","IsAGun must be a boolean")
+	assert(typeof(calculationspersecond) == "number","Calcuations Per Second must be a number")
+	assert(typeof(maxcalculations) == "number","Maximum Calculations must be a number")
 
-	assert(typeof(predictspamjump) == "boolean", "A boolean must be provided for predictspamjump")
-	assert(typeof(IsAGun) == "boolean", "A boolean must be provided for IsAGun")
-	assert(typeof(accuracy) == "number", "A number value must be provided for the accuracy")
-	assert(typeof(maxduration) == "number", "A number value must be provided for the maxduration")
+	local lplr = game.Players.LocalPlayer
+	
+	local ps = projectilespeed
+	local pg = projectilegravity
+	local path = {}
+	local tpos = targetroot.Position
+	local tvel = targetroot.Velocity
+	local movedir = targethum.MoveDirection
+	local ws = targethum.WalkSpeed
+	local jp = targethum.JumpPower
+	local pointpos = tpos
+	local pointvel = tvel
+	local g = workspace.Gravity
+	local t = 0
+	local x
+	local y
+	local projduration = 0
+	local launchangle = 0
+	local dt = calculationspersecond
+	local floorhitprevpos
+	local ceilinghitprevpos
+	local pointprevpos
+	local pointprevvel
+	local prevprojduration
+
+	local ceilinghit = Instance.new("Part", workspace)
+	ceilinghit.Anchored = true
+	ceilinghit.CFrame = CFrame.new(tpos + Vector3.new(0,1.5,0)) * CFrame.Angles(0,math.rad(targetroot.Orientation.Y),0)
+	ceilinghit.Size = Vector3.new(2,1,1)
+
+	local wallhit = Instance.new("Part", workspace)
+	wallhit.Anchored = true
+	wallhit.CFrame = CFrame.new(tpos) * CFrame.Angles(0,math.rad(targetroot.Orientation.Y),0)
+	wallhit.Size = Vector3.new(4, 2, 1)
+
+	local floorhit = Instance.new("Part", workspace)
+	floorhit.Anchored = true
+	floorhit.CFrame = CFrame.new(tpos + Vector3.new(0,-2.001,0)) * CFrame.Angles(0,math.rad(targetroot.Orientation.Y),0)
+	floorhit.Size = Vector3.new(2,2.002,1)
 
 	local function tableconcat(t1,t2)
-		for i=1,#t2 do
+		for i = 1,#t2 do
 			t1[#t1+1] = t2[i]
 		end
 		return t1
 	end
-	local lplr = game.Players.LocalPlayer
-
-	local char = lplr.Character
-
-	local projduration = 0
-	local pointduration = 0
-	local pos = target.HumanoidRootPart.Position
-	local a = 0
-	local b = 0
-	local c = 0
-	local x = 0 
-	local y = 0
-	local xvel = target.HumanoidRootPart.Velocity.X
-	local yvel = target.HumanoidRootPart.Velocity.Y
-	local zvel = target.HumanoidRootPart.Velocity.Z
-	local movex = target.HumanoidRootPart.Parent.Humanoid.MoveDirection.X
-	local movey = target.HumanoidRootPart.Parent.Humanoid.MoveDirection.Y
-	local movez = target.HumanoidRootPart.Parent.Humanoid.MoveDirection.Z
-
-	local floorhit = Instance.new("Part", workspace)
-	floorhit.Name = "floorhit"
-	floorhit.Anchored = true
-	floorhit.Size = Vector3.new(2, 0.5, 1)
-	floorhit.Position = target.HumanoidRootPart.Position - Vector3.new(0,2.775,0)
-	floorhit.Orientation = target.HumanoidRootPart.Orientation * Vector3.new(0,1,0)
-
-	local ceilinghit = Instance.new("Part", workspace)
-	ceilinghit.Name = "ceilinghit"
-	ceilinghit.Anchored = true
-	ceilinghit.Size = Vector3.new(1, 0.5, 1)
-	ceilinghit.Position = target.HumanoidRootPart.Position + Vector3.new(0,1.775,0)
-	ceilinghit.Orientation = target.HumanoidRootPart.Orientation * Vector3.new(0,1,0)
-
-	local wallhit = Instance.new("Part", workspace)
-	wallhit.Name = "wallhit"
-	wallhit.Anchored = true
-	wallhit.Size = Vector3.new(4.25, 2.25, 1)
-	wallhit.Position = target.HumanoidRootPart.Position
-	wallhit.Orientation = target.HumanoidRootPart.Orientation * Vector3.new(0,1,0)
-
-	local path = {}
-	local ignoredescendantsinstances = {target,char,floorhit,wallhit,ceilinghit} -- Blacklists parts and it's descendants
-
-	local function checktouchingparts(tab) -- Filters out any parts/part's descendants from the ignoredescendantsinstances table
-		if #tab > 0 then
-			local touchingparts = {}
-			for i = 1,#tab,1 do
-				local aa
-				for v = 1,#ignoredescendantsinstances,1 do
-					if not tab[i]:FindFirstAncestor(ignoredescendantsinstances[v].Name) and tab[i] ~= ignoredescendantsinstances[v] and aa ~= false then
-						aa = true
-					else
-						aa = false
-					end
-				end
-				if aa then
-					table.insert(touchingparts,tab[i])
+	local function CheckTouchingParts(tab,ignoredescendantsinstances)
+		local touchingparts = {}
+		local function CheckInsideIgnoreList(obj)
+			local inside = false
+			for _, v in pairs(ignoredescendantsinstances) do
+				if obj:IsDescendantOf(v) then
+					inside = true
 				end
 			end
-			if #touchingparts > 0 then
-				return {true,touchingparts}
-			else
-				return {false,{}}
-			end
-		else
-			return {false,{}}
+			return inside
 		end
+		for _, v in pairs(tab) do
+			if not table.find(ignoredescendantsinstances,v) and not CheckInsideIgnoreList(v) then
+				table.insert(touchingparts,v)
+			end
+		end
+		return touchingparts
+	end
+
+	local ignorelist = tableconcat({targetchar,ceilinghit,wallhit,floorhit},ignorelist)
+	if lplr and lplr.Character then
+		table.insert(ignorelist,lplr.Character)
 	end
 	repeat
-		pointduration = pointduration + (1/accuracy)
+		floorhitprevpos = floorhit.Position
+		ceilinghitprevpos = ceilinghit.Position
+		
+		pointprevvel = pointvel
+		pointprevpos = pointpos
+		prevprojduration = projduration
 
-		yvel = yvel - workspace.Gravity / accuracy
+		pointvel -= Vector3.new(0,g/dt,0)
+		pointpos += Vector3.new(0,pointvel.Y*(1/dt) + -g*(1/dt)^2/2,0)
 
-		local prevpos = pos
-		pos = pos + Vector3.new(xvel/accuracy,yvel/accuracy,zvel/accuracy)
+		ceilinghit.CFrame = CFrame.new(pointpos + Vector3.new(0,1.5,0)) * CFrame.Angles(0,math.rad(targetroot.Orientation.Y),0)
+		wallhit.CFrame = CFrame.new(pointpos) * CFrame.Angles(0,math.rad(targetroot.Orientation.Y),0)
+		floorhit.CFrame = CFrame.new(pointpos + Vector3.new(0,-2,0)) * CFrame.Angles(0,math.rad(targetroot.Orientation.Y),0)
+
+		local floortp = floorhit:GetTouchingParts()
+		local walltp = wallhit:GetTouchingParts()
+		local ceilingtp = ceilinghit:GetTouchingParts()
+
+		local floorhitchecktp = CheckTouchingParts(floortp,ignorelist)
+		local ceilinghitchecktp = CheckTouchingParts(floortp,ignorelist)
 
 		local params = RaycastParams.new()
+		params.FilterDescendantsInstances = ignorelist
 		params.FilterType = Enum.RaycastFilterType.Exclude
-		params.FilterDescendantsInstances = ignoredescendantsinstances
 
-		floorhit.Position = pos - Vector3.new(0,2.775,0)
-		ceilinghit.Position = pos + Vector3.new(0,1.775,0)
-		wallhit.Position = pos
-
-		local floortouchingparts = floorhit:GetTouchingParts()
-		local ceilingtouchingparts = ceilinghit:GetTouchingParts()
-		local walltouchingparts = wallhit:GetTouchingParts()
-
-		local checktouchingpartsfloortouchingparts = checktouchingparts(floortouchingparts)
-		local checktouchingpartswalltouchingparts = checktouchingparts(walltouchingparts)
-
-		local groundpartinterception = workspace:Raycast(prevpos,pos-prevpos,params) -- Stops it from falling through the ground
-
-		if groundpartinterception and groundpartinterception.Position then
-			if not checktouchingpartswalltouchingparts[1] then
-				yvel = groundpartinterception.Position.Y - pos.Y + 3
-				pos = pos + Vector3.new(0,yvel,0)
-				yvel = 0
-			else
-				yvel = 0
+		local checkfallingthroughray = workspace:Raycast(floorhit.Position * Vector3.new(1,0,1) + floorhitprevpos * Vector3.new(0,1,0),floorhit.Position - (floorhit.Position * Vector3.new(1,0,1) + floorhitprevpos * Vector3.new(0,1,0)),params)
+		local checkceilinghitray = workspace:Raycast(ceilinghit.Position * Vector3.new(1,0,1) + ceilinghitprevpos * Vector3.new(0,1,0),ceilinghit.Position - (ceilinghit.Position * Vector3.new(1,0,1) + ceilinghitprevpos * Vector3.new(0,1,0)),params)
+		if checkfallingthroughray and checkfallingthroughray.Position and (floorhit.Position - (floorhit.Position * Vector3.new(1,0,1) + floorhitprevpos * Vector3.new(0,1,0))).Y < 0 then
+			pointpos = Vector3.new(pointpos.X,checkfallingthroughray.Position.Y + 3,pointpos.Z)
+			pointvel *= Vector3.new(1,0,1)
+			
+			local y = pointpos.Y - pointprevpos.Y
+			local py = pointprevvel.Y
+			local tm = (-py - math.sqrt(2*g*y + py^2)) / g
+			
+			if predictspamjump and targethum.Jump then
+				pointvel += Vector3.new(0,jp,0)
+				pointpos += Vector3.new(0,pointvel.Y*(1/(dt - tm)) + -g*(1/(dt - tm))^2/2,0)
+				pointvel = Vector3.new(pointvel.X,jp - g*tm,pointvel.Z)
 			end
-		elseif checktouchingpartsfloortouchingparts[1] then
-			local goalx = movex * target.Humanoid.WalkSpeed
-			local goalz = movez * target.Humanoid.WalkSpeed
-
-			if xvel > goalx then
-				xvel -= 132.8 / accuracy
-			elseif xvel < goalx then
-				xvel += 132.8 / accuracy
-			else
-				xvel = goalx
-			end
-			if zvel > goalz then
-				zvel -= 132.8 / accuracy
-			elseif zvel < goalz then
-				zvel += 132.8 / accuracy
-			else
-				zvel = goalz
-			end
-
-			if not checktouchingpartswalltouchingparts[1] then
-				local highest
-				local sort = {}
-				if #checktouchingpartsfloortouchingparts > 0 then
-					for i = 1,#checktouchingpartsfloortouchingparts[2],1 do
-						table.insert(sort,{checktouchingpartsfloortouchingparts[2][i],checktouchingpartsfloortouchingparts[2][i].Position.Y})
+		elseif #floorhitchecktp > 0 then
+			local highest
+			for _, v in pairs(floorhitchecktp) do
+				if not table.find(walltp,v) then
+					if not highest or v.Position.Y > highest[2] then
+						highest = {v,v.Position.Y}
 					end
-					table.sort(sort,
-						function(a,b)
-							return a[2] > b[2]
-						end
-					)
 				end
-				highest = sort[1][1]
-				if highest and sort then
-					if highest:IsA("Part") and highest.Shape == Enum.PartType.Block or highest:IsA("MeshPart") and highest.MeshId == "" then
-						yvel = highest.Position.Y + highest.Size.Y/2 - pos.Y + 3
-						pos = pos + Vector3.new(0,yvel,0)
-						yvel = 0
+			end
+			if highest and highest[1] then
+				local goalx = movedir.X * ws
+				local goalz = movedir.Z * ws
+
+				if pointvel.X > goalx then
+					pointvel -= Vector3.new(750 / dt,0,0)
+					if pointvel.X < goalx then
+						pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
+						pointpos += Vector3.new(pointvel.X/dt,0,0)
 					else
-						local raycastfloorhit = workspace:Raycast(pos,Vector3.new(0,-3,0),params)
-						if raycastfloorhit and raycastfloorhit.Position then
-							yvel = raycastfloorhit.Position.Y - pos.Y + 3
-							pos = pos + Vector3.new(0,yvel,0)
-							yvel = 0
-						end
+						pointpos += Vector3.new(pointvel.X*(1/dt) + -750*(1/dt)^2/2,0,0)
 					end
-					if target.Humanoid.Jump and predictspamjump then -- if the player continuously punches their space key
-						yvel = target.Humanoid.JumpPower
-						pos = pos + Vector3.new(0,yvel/accuracy,0) 
+				elseif pointvel.X < goalx then
+					pointvel += Vector3.new(750 / dt,0,0)
+					if pointvel.X > goalx then
+						pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
+						pointpos += Vector3.new(pointvel.X/dt,0,0)
+					else
+						pointpos += Vector3.new(pointvel.X*(1/dt) + 750*(1/dt)^2/2,0,0)
+					end
+				else
+					pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
+					pointpos += Vector3.new(pointvel.X/dt,0,0)
+				end
+				if pointvel.Z > goalz then
+					pointvel -= Vector3.new(0,0,750 / dt)
+					if pointvel.Z < goalz then
+						pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
+						pointpos += Vector3.new(0,0,pointvel.Z/dt)
+					else
+						pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + -750*(1/dt)^2/2)
+					end
+				elseif pointvel.Z < goalz then
+					pointvel += Vector3.new(0,0,750 / dt)
+					if pointvel.Z > goalz then
+						pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
+						pointpos += Vector3.new(0,0,pointvel.Z/dt)
+					else
+						pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + 750*(1/dt)^2/2)
+					end
+				else
+					pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
+					pointpos += Vector3.new(0,0,pointvel.Z/dt)
+				end
+
+				pointpos = pointpos * Vector3.new(1,0,1) + (highest[1].Position * Vector3.new(0,1,0) + Vector3.new(0,highest[1].Size.Y/2 + 3,0))
+				pointvel *= Vector3.new(1,0,1)
+				
+				local y = pointpos.Y - pointprevpos.Y
+				local py = pointprevvel.Y
+				local tm = (-py - math.sqrt(2*g*y + py^2)) / g
+				
+				if predictspamjump and targethum.Jump then
+					pointvel += Vector3.new(0,jp,0)
+					pointpos += Vector3.new(0,pointvel.Y*(1/(dt - tm)) + -g*(1/(dt - tm))^2/2,0)
+					pointvel = Vector3.new(pointvel.X,jp - g*(dt - tm),pointvel.Z)
+				end
+			end
+		elseif checkceilinghitray and checkceilinghitray.Position then
+			pointpos = Vector3.new(pointpos.X,checkceilinghitray.Position.Y - 3,pointpos.Z)
+			pointvel = Vector3.new(pointvel.X,-math.abs(pointvel.Y),pointvel.Z)
+		elseif #ceilinghitchecktp > 0 then
+			local lowest
+			for _, v in pairs(floorhitchecktp) do
+				if not table.find(walltp,v) then
+					if not lowest or v < lowest[2] then
+						lowest = {v,v.Position.Y}
 					end
 				end
-			else
-				yvel = 0
 			end
-		end
-		if checktouchingparts(ceilingtouchingparts)[1] then -- If the player hits the ceiling
-			yvel = math.abs(yvel) / -1
-		else -- else if the player is in the air
-			local goalx = movex * target.Humanoid.WalkSpeed
-			local goalz = movez * target.Humanoid.WalkSpeed
-
-			if xvel > goalx then
-				xvel -= 132.8 / accuracy
-			elseif xvel < goalx then
-				xvel += 132.8 / accuracy
-			else
-				xvel = goalx
+			if lowest and lowest[1] then
+				pointpos = pointpos * Vector3.new(1,0,1) + (lowest[1].Position * Vector3.new(0,1,0) + Vector3.new(0,-lowest[1].Size.Y/2 - 3,0))
+				pointvel = Vector3.new(pointvel.X,-math.abs(pointvel.Y),pointvel.Z)
 			end
-			if zvel > goalz then
-				zvel -= 132.8 / accuracy
-			elseif zvel < goalz then
-				zvel += 132.8 / accuracy
-			else
-				zvel = goalz
-			end
-		end
-		local plr1 = startpos
-		local plr2 = pos
-
-		x = (Vector2.new(plr2.X,plr2.Z)-Vector2.new(plr1.X,plr1.Z)).Magnitude
-		y = plr2.Y-plr1.Y
-		local g = projectilegravity
-		local v = projectilespeed
-		if g == 0 then
-			c = math.atan(y/x)
 		else
-			c = math.atan( ((v^2) - math.sqrt( (v^4) - (g * ( (g*(x^2)) + (2*(y*(v^2))) )) )) / (g*x) )
+			local goalx = movedir.X * ws
+			local goalz = movedir.Z * ws
+
+			if pointvel.X > goalx then
+				pointvel -= Vector3.new(144 / dt,0,0) -- 144.1926
+				if pointvel.X < goalx then
+					pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
+					pointpos += Vector3.new(pointvel.X/dt,0,0)
+				else
+					pointpos += Vector3.new(pointvel.X*(1/dt) + -144*(1/dt)^2/2,0,0)
+				end
+			elseif pointvel.X < goalx then
+				pointvel += Vector3.new(144 / dt,0,0)
+				if pointvel.X > goalx then
+					pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
+					pointpos += Vector3.new(pointvel.X/dt,0,0)
+				else
+					pointpos += Vector3.new(pointvel.X*(1/dt) + 144*(1/dt)^2/2,0,0)
+				end
+			else
+				pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
+				pointpos += Vector3.new(pointvel.X/dt,0,0)
+			end
+			if pointvel.Z > goalz then
+				pointvel -= Vector3.new(0,0,144 / dt)
+				if pointvel.Z < goalz then
+					pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
+					pointpos += Vector3.new(0,0,pointvel.Z/dt)
+				else
+					pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + -144*(1/dt)^2/2)
+				end
+			elseif pointvel.Z < goalz then
+				pointvel += Vector3.new(0,0,144 / dt)
+				if pointvel.Z > goalz then
+					pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
+					pointpos += Vector3.new(0,0,pointvel.Z/dt)
+				else
+					pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + 144*(1/dt)^2/2)
+				end
+			else
+				pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
+				pointpos += Vector3.new(0,0,pointvel.Z/dt)
+			end
 		end
-		local prevprojduration = projduration
-		if IsAGun then
-			projduration = game.Players.LocalPlayer:GetNetworkPing()
+		
+		pointpos += Vector3.new(0,aimheight,0)
+		
+		x = (Vector2.new(pointpos.X,pointpos.Z) - Vector2.new(startpos.X,startpos.Z)).Magnitude
+		y = pointpos.Y - startpos.Y
+		if isagun then
+			launchangle = math.atan(y/x)
+			projduration = ping / 1000
 		else
-			projduration = ((x / math.cos(c)) / v) + game.Players.LocalPlayer:GetNetworkPing()
+			launchangle = math.atan(y/x)
+			if pg ~= 0 then
+				launchangle = math.atan((ps^2 - math.sqrt(ps^4 - pg*(pg*x^2 + 2*y*ps^2))) / (pg*x))
+			end
+			projduration = x / math.cos(launchangle) / ps + ping / 1000
 		end
-		table.insert(path,pos)
-	until pointduration > projduration or pointduration > maxduration or pos.Y < workspace.FallenPartsDestroyHeight -- Checks if the projectile reaches their future position or if the player falls below the void
-	floorhit:Destroy()
+		
+		pointpos -= Vector3.new(0,aimheight,0)
+		
+		t += 1/dt
+		
+		table.insert(path,pointpos)
+	until t >= projduration or t*dt >= maxcalculations or pointpos.Y <= workspace.FallenPartsDestroyHeight
+	
 	ceilinghit:Destroy()
 	wallhit:Destroy()
-
-	--[[
-	local charclone = targetroot.Parent:Clone()
-	charclone.Parent = nodesfolder
-	charclone:SetPrimaryPartCFrame(CFrame.new(pos))
+	floorhit:Destroy()
 	
-	for _, i in pairs(charclone:GetChildren()) do
-		if i:IsA("BasePart") and i.Name ~= "HumanoidRootPart" then
-			i.Transparency = 0.75
-			i.BrickColor = BrickColor.new("Medium stone grey")
-			i.Anchored = true
-			for _, v in pairs(i:GetChildren()) do
-				v:Destroy()
-			end
-		else
-			i:Destroy()
-		end
-	end
-	]]
-	local aimposition = Vector3.new(pos.X,(x * math.tan(c))+char.HumanoidRootPart.Position.Y,pos.Z)
-	return path,aimposition
+	pointpos += Vector3.new(0,aimheight,0)
+	
+	print(projduration)
+	local aimposition = Vector3.new(pointpos.X,(x * math.tan(launchangle))+startpos.Y,pointpos.Z)
+	return path, aimposition
 end
+
 return aimbot
