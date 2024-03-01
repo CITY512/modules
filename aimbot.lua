@@ -1,5 +1,6 @@
 local aimbot = {}
 
+
 function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectilegravity,ignorelist,predictspamjump,ping,aimheight,isagun,calculationspersecond,maxcalculations) -- Gets the Vector3Value of where to aim at
 	assert(typeof(startpos),"startpos is required")
 	assert(typeof(startpos) == "Vector3","startpos must be a Vector3")
@@ -141,7 +142,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 		params.FilterDescendantsInstances = ignorelist
 		params.FilterType = Enum.RaycastFilterType.Exclude
 
-		local checkfallingthroughray = workspace:Raycast(pointprevpos - Vector3.new(0,3,0),(pointpos - Vector3.new(0,3,0)) - (pointprevpos - Vector3.new(0,3,0)),params)
+		local checkfallingthroughray = workspace:Raycast(pointpos * Vector3.new(1,0,1) + pointprevpos * Vector3.new(0,1,0),pointpos - (pointpos * Vector3.new(1,0,1) + pointprevpos * Vector3.new(0,1,0)),params)
 		local checkceilinghitray = workspace:Raycast(pointprevpos + Vector3.new(0,2,0),(pointpos + Vector3.new(0,2,0)) - (pointprevpos + Vector3.new(0,2,0)),params)
 		if checkfallingthroughray and checkfallingthroughray.Position then
 			pointpos = Vector3.new(pointpos.X,checkfallingthroughray.Position.Y + 3,pointpos.Z)
@@ -170,46 +171,46 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 				local goalz = movedir.Z * ws
 
 				if pointvel.X > goalx then
-					pointvel -= Vector3.new(1154 / dt,0,0)
+					pointvel -= Vector3.new(750 / dt * math.abs(movedir.X),0,0)
 					if pointvel.X < goalx then
 						pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
 						pointpos += Vector3.new(pointvel.X/dt,0,0)
 					else
-						pointpos += Vector3.new(pointvel.X*(1/dt) + -1154*(1/dt)^2/2,0,0)
+						pointpos += Vector3.new(pointvel.X*(1/dt) + -750*(1/dt)^2/2,0,0)
 					end
 				elseif pointvel.X < goalx then
-					pointvel += Vector3.new(1154 / dt,0,0)
+					pointvel += Vector3.new(750 / dt * math.abs(movedir.X),0,0)
 					if pointvel.X > goalx then
 						pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
 						pointpos += Vector3.new(pointvel.X/dt,0,0)
 					else
-						pointpos += Vector3.new(pointvel.X*(1/dt) + 1154*(1/dt)^2/2,0,0)
+						pointpos += Vector3.new(pointvel.X*(1/dt) + 750*(1/dt)^2/2,0,0)
 					end
 				else
 					pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
 					pointpos += Vector3.new(pointvel.X/dt,0,0)
 				end
 				if pointvel.Z > goalz then
-					pointvel -= Vector3.new(0,0,1154 / dt)
+					pointvel -= Vector3.new(0,0,750 / dt * math.abs(movedir.Z))
 					if pointvel.Z < goalz then
 						pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
 						pointpos += Vector3.new(0,0,pointvel.Z/dt)
 					else
-						pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + -1154*(1/dt)^2/2)
+						pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + -750*(1/dt)^2/2)
 					end
 				elseif pointvel.Z < goalz then
-					pointvel += Vector3.new(0,0,1154 / dt)
+					pointvel += Vector3.new(0,0,750 / dt * math.abs(movedir.Z))
 					if pointvel.Z > goalz then
 						pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
 						pointpos += Vector3.new(0,0,pointvel.Z/dt)
 					else
-						pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + 1154*(1/dt)^2/2)
+						pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + 750*(1/dt)^2/2)
 					end
 				else
 					pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
 					pointpos += Vector3.new(0,0,pointvel.Z/dt)
 				end
-				
+
 				local interceptpoint = pointpos * Vector3.new(1,0,1) + (highest[1].Position * Vector3.new(0,1,0) + Vector3.new(0,highest[1].Size.Y/2,0))
 				pointpos = interceptpoint + Vector3.new(0,3,0)
 				pointvel *= Vector3.new(1,0,1)
@@ -245,7 +246,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 			local goalz = movedir.Z * ws
 
 			if pointvel.X > goalx then
-				pointvel -= Vector3.new(143 / dt,0,0) -- 143.1926
+				pointvel -= Vector3.new(143 / dt * math.abs(movedir.X),0,0) -- 143.1926
 				if pointvel.X < goalx then
 					pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
 					pointpos += Vector3.new(pointvel.X/dt,0,0)
@@ -253,7 +254,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 					pointpos += Vector3.new(pointvel.X*(1/dt) + -143*(1/dt)^2/2,0,0)
 				end
 			elseif pointvel.X < goalx then
-				pointvel += Vector3.new(143 / dt,0,0)
+				pointvel += Vector3.new(143 / dt * math.abs(movedir.X),0,0)
 				if pointvel.X > goalx then
 					pointvel = Vector3.new(goalx,pointvel.Y,pointvel.Z)
 					pointpos += Vector3.new(pointvel.X/dt,0,0)
@@ -265,7 +266,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 				pointpos += Vector3.new(pointvel.X/dt,0,0)
 			end
 			if pointvel.Z > goalz then
-				pointvel -= Vector3.new(0,0,143 / dt)
+				pointvel -= Vector3.new(0,0,143 / dt * math.abs(movedir.Z))
 				if pointvel.Z < goalz then
 					pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
 					pointpos += Vector3.new(0,0,pointvel.Z/dt)
@@ -273,7 +274,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 					pointpos += Vector3.new(0,0,pointvel.Z*(1/dt) + -143*(1/dt)^2/2)
 				end
 			elseif pointvel.Z < goalz then
-				pointvel += Vector3.new(0,0,143 / dt)
+				pointvel += Vector3.new(0,0,143 / dt * math.abs(movedir.Z))
 				if pointvel.Z > goalz then
 					pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
 					pointpos += Vector3.new(0,0,pointvel.Z/dt)
