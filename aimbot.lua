@@ -147,7 +147,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 		local checkceilinghitray = workspace:Raycast(pointprevpos + Vector3.new(0,2,0),(pointpos + Vector3.new(0,2,0)) - (pointprevpos + Vector3.new(0,2,0)),params)
 		if checkfallingthroughray and checkfallingthroughray.Position and checkfallingthroughray.Instance then
 			floormaterial = checkfallingthroughray.Instance.Material
-			if floormaterial == Enum.Material.Plastic then
+			if floormaterial then
 				friction = 750
 			end
 			
@@ -174,7 +174,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 			end
 			if highest and highest[1] then
 				floormaterial = highest[1].Material
-				if floormaterial == Enum.Material.Plastic then
+				if floormaterial then
 					friction = 750
 				end
 				
