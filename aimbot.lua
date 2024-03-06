@@ -271,12 +271,16 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 				pointvel = Vector3.new(pointvel.X,pointvel.Y,goalz)
 			end
 		end
-
+		t += 1/dt
+		
 		pointpos += Vector3.new(0,aimheight,0)
 
 		x = (Vector2.new(pointpos.X,pointpos.Z) - Vector2.new(startpos.X,startpos.Z)).Magnitude
 		y = pointpos.Y - startpos.Y
 		if isagun then
+			if projduration - t < 1/dt then
+				dt = 1 / (projduration - t)
+			end
 			launchangle = math.atan(y/x)
 			projduration = ping / 1000
 		else
@@ -286,11 +290,9 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 			end
 			projduration = x / math.cos(launchangle) / ps + ping / 1000
 		end
-
+		
 		pointpos -= Vector3.new(0,aimheight,0)
-
-		t += 1/dt
-
+		
 		table.insert(path,pointpos)
 	until t >= projduration or t*dt >= maxcalculations or pointpos.Y <= workspace.FallenPartsDestroyHeight
 
