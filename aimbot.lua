@@ -278,9 +278,6 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 		x = (Vector2.new(pointpos.X,pointpos.Z) - Vector2.new(startpos.X,startpos.Z)).Magnitude
 		y = pointpos.Y - startpos.Y
 		if isagun then
-			if projduration - t < 1/dt then
-				dt = 1 / (projduration - t)
-			end
 			launchangle = math.atan(y/x)
 			projduration = ping / 1000
 		else
