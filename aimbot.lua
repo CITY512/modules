@@ -48,7 +48,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 
 	local lplr = game.Players.LocalPlayer
 
-	local ps = projectilespeed
+	local v = projectilespeed
 	local pg = projectilegravity
 	local path = {}
 	local tpos = targetroot.Position
@@ -117,7 +117,25 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 	if lplr and lplr.Character then
 		table.insert(ignorelist,lplr.Character)
 	end
-	repeat
+	while true do
+		pointpos += Vector3.new(0,aimheight,0)
+
+		x = (Vector2.new(pointpos.X,pointpos.Z) - Vector2.new(startpos.X,startpos.Z)).Magnitude
+		y = pointpos.Y - startpos.Y
+		if isagun then
+			launchangle = math.atan(y/x)
+			projduration = ping / 1000
+		else
+			launchangle = math.atan(y/x)
+			if pg ~= 0 then
+				launchangle = math.atan((v^2 - math.sqrt(v^4 - pg*(pg*x^2 + 2*y*v^2))) / (pg*x))
+			end
+			projduration = x / math.cos(launchangle) / v + ping / 1000
+		end
+		if t >= projduration or t*dt >= maxcalculations or pointpos.Y <= workspace.FallenPartsDestroyHeight then break end
+		
+		pointpos -= Vector3.new(0,aimheight,0)
+		
 		floorhitprevpos = floorhit.Position
 		ceilinghitprevpos = ceilinghit.Position
 
@@ -150,7 +168,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 			if floormaterial then
 				friction = 750
 			end
-			
+
 			pointpos = Vector3.new(pointpos.X,checkfallingthroughray.Position.Y + 3,pointpos.Z)
 			pointvel *= Vector3.new(1,0,1)
 
@@ -177,7 +195,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 				if floormaterial then
 					friction = 750
 				end
-				
+
 				local goalx = movedir.X * ws
 				local goalz = movedir.Z * ws
 
@@ -240,7 +258,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 			end
 		else
 			friction = 143
-			
+
 			local goalx = movedir.X * ws
 			local goalz = movedir.Z * ws
 
@@ -272,26 +290,9 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 			end
 		end
 		t += 1/dt
-		
-		pointpos += Vector3.new(0,aimheight,0)
 
-		x = (Vector2.new(pointpos.X,pointpos.Z) - Vector2.new(startpos.X,startpos.Z)).Magnitude
-		y = pointpos.Y - startpos.Y
-		if isagun then
-			launchangle = math.atan(y/x)
-			projduration = ping / 1000
-		else
-			launchangle = math.atan(y/x)
-			if pg ~= 0 then
-				launchangle = math.atan((ps^2 - math.sqrt(ps^4 - pg*(pg*x^2 + 2*y*ps^2))) / (pg*x))
-			end
-			projduration = x / math.cos(launchangle) / ps + ping / 1000
-		end
-		
-		pointpos -= Vector3.new(0,aimheight,0)
-		
 		table.insert(path,pointpos)
-	until t >= projduration or t*dt >= maxcalculations or pointpos.Y <= workspace.FallenPartsDestroyHeight
+	end
 
 	ceilinghit:Destroy()
 	wallhit:Destroy()
