@@ -402,7 +402,7 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 			end
 			projduration = x / math.cos(launchangle) / v + ping / 1000
 		end
-		if t >= projduration or t*dt >= maxcalculations or pointpos.Y <= workspace.FallenPartsDestroyHeight then break end
+		if t >= projduration or math.abs(projduration - t) <= 0.01 or t*dt >= maxcalculations or pointpos.Y <= workspace.FallenPartsDestroyHeight then break end
 
 		pointpos -= Vector3.new(0,aimheight,0)
 
