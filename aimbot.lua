@@ -401,11 +401,14 @@ function aimbot:ComputePathAsync(startpos,targetchar,projectilespeed,projectileg
 				launchangle = math.atan((v^2 - math.sqrt(v^4 - pg*(pg*x^2 + 2*y*v^2))) / (pg*x))
 			end
 			projduration = x / math.cos(launchangle) / v + ping / 1000
+			if projduration - t <= 1/calculationspersecond then
+				dt = projduration - t
+			end
 		end
 
 		pointpos -= Vector3.new(0,aimheight,0)
 		
-		if t >= projduration or math.abs(projduration - t) <= 0.01 or t*dt >= maxcalculations or pointpos.Y <= workspace.FallenPartsDestroyHeight then break end
+		if t >= projduration or math.abs(projduration - t) <= 0.1 or t*dt >= maxcalculations or pointpos.Y <= workspace.FallenPartsDestroyHeight then break end
 
 		floorhitprevpos = floorhit.Position
 		ceilinghitprevpos = ceilinghit.Position
