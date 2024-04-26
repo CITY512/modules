@@ -572,15 +572,17 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 
 		if #wallTouchingParts > 0 then -- Touching the wall
-			simulatedPos -= Vector3.new(moveDirection.X*playerWalkSpeed*interval,0,0)
+			local lookvec = CFrame.new(prevSimulatedPos,simulatedPos).LookVector
+			local dist = (simulatedPos - prevSimulatedPos).Magnitude
+			simulatedPos -= Vector3.new(lookvec.X*dist,0,0) -- Vector3.new(moveDirection.X*playerWalkSpeed*interval,0,0)
 			updatePositions()
 			local wallTouchingParts2 = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
-			if #wallTouchingParts2 > 0 then
-				simulatedPos -= Vector3.new(-moveDirection.X*playerWalkSpeed*interval,0,moveDirection.Z*playerWalkSpeed*interval)
+			if #wallTouchingParts2 > 0 then 
+				simulatedPos -= Vector3.new(-lookvec.X*dist,0,lookvec.Z*dist) -- Vector3.new(-moveDirection.X*playerWalkSpeed*interval,0,moveDirection.Z*playerWalkSpeed*interval)
 				updatePositions()
 				local wallTouchingParts3 = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 				if #wallTouchingParts3 > 0 then
-					simulatedPos -= Vector3.new(0,0,moveDirection.Z*playerWalkSpeed*interval)
+					simulatedPos -= Vector3.new(0,0,lookvec.Z*dist)  -- Vector3.new(0,0,moveDirection.Z*playerWalkSpeed*interval)
 				end
 			end
 		end
