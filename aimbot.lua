@@ -590,7 +590,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		if #floorTouchingParts > 0 and simulatedVel.Y <= interval then -- Touching the floor
 			local highest
 			for _, i in pairs(floorTouchingParts) do
-				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y - 1 > i.Position.Y + i.Size.Y / 2 and i.Position.Y + i.Size.Y / 2 > highest then
+				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y - 1 > i.Position.Y + i.Size.Y / 2 and (not highest or i.Position.Y + i.Size.Y / 2 > highest) then
 					highest = i.Position.Y + i.Size.Y / 2
 				else
 					local height = checkHighest(i)
@@ -617,7 +617,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			local lowest
 			for _, i in pairs(ceilTouchingParts) do
 				if not table.find(wallTouchingParts,i) then
-					if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1 < i.Position.Y + i.Size.Y / 2 and i.Position.Y - i.Size.Y / 2 < lowest then
+					if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1 < i.Position.Y + i.Size.Y / 2 and (not lowest or i.Position.Y - i.Size.Y / 2 < lowest) then
 						lowest = i.Position.Y - i.Size.Y / 2
 					elseif not lowest then
 						local raycast = workspace:Raycast(simulatedPos + Vector3.new(0,1,0),Vector3.new(0,2,0),raycastParams)
