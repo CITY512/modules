@@ -279,6 +279,8 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 
 	-- Target Character
 	assert(targetCharacter,"Target character is required")
+	assert(typeof(targetCharacter) == "Instance","Target character must be a Model")
+	
 	local targetHum
 	local targetRoot
 	if targetCharacter.ClassName == "Model" then
@@ -337,6 +339,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	assert(typeof(maxSimulationTime) == "number","Maximum Calculations must be a number")
 
 	-- Variables
+	local originalInterval = interval
 	local simulatedPos = targetRoot.Position
 	local simulatedVel = targetRoot.Velocity
 	local simulatedTime = 0
@@ -352,8 +355,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	local y
 
 	-- Hit Detection
+	
 	local floorHit = Instance.new("Part", workspace)
-	floorHit.Size = Vector3.new(2,2.002,1)
+	floorHit.Size = Vector3.new(2,2,1)
 	floorHit.CFrame = CFrame.new(targetRoot.Position - Vector3.new(0,2.001,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
 	floorHit.Anchored = true
 
@@ -363,7 +367,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	wallHit.Anchored = true
 
 	local ceilHit = Instance.new("Part", workspace)
-	ceilHit.Size = Vector3.new(2,1.002,1)
+	ceilHit.Size = Vector3.new(2,1,1)
 	ceilHit.CFrame = CFrame.new(targetRoot.Position + Vector3.new(0,1.501,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
 	ceilHit.Anchored = true
 
@@ -397,12 +401,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		wallHit.Position = simulatedPos
 		ceilHit.Position = simulatedPos + Vector3.new(0,1.5,0)
 	end
-	local function getTouchingParts()
-		local floorTouchingParts = checkTouchingParts(floorHit:GetTouchingParts(),ignoreList)
-		local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
-		local ceilTouchingParts = checkTouchingParts(ceilHit:GetTouchingParts(),ignoreList)
-		return floorTouchingParts,wallTouchingParts,ceilTouchingParts
-	end
+	
 	local function checkOrientation(basePart)
 		return (math.abs(basePart.Orientation.X) ~= 0 and math.abs(basePart.Orientation.X) ~= 180) and (math.abs(basePart.Orientation.Z) ~= 0 and math.abs(basePart.Orientation.Z) ~= 180)
 	end
@@ -457,6 +456,58 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			simulatedVel.Z*interval + frictionDeceleration*moveDirection.Z*interval^2/2
 		) -- Calculates next simulated point position
 	end
+	local function checkHighest(obj)
+		local highestray
+		
+		local rot = floorHit.Orientation.Y
+		local function getPosition(offset,rot)
+			local positionMatrix = {
+				{offset.X},
+				{offset.Y}
+			}
+			local rotationMatrix = {
+				{math.cos(math.rad(rot)),-math.sin(math.rad(rot))},
+				{math.sin(math.rad(rot)),math.cos(math.rad(rot))}
+			}
+			local resultMatrix = {
+				{rotationMatrix[1][1] * positionMatrix[1][1] + rotationMatrix[1][2] * positionMatrix[2][1]},
+				{rotationMatrix[2][1] * positionMatrix[1][1] + rotationMatrix[2][2] * positionMatrix[2][1]}
+			}
+			local x,z = floorHit.Position.X + resultMatrix[1][1],floorHit.Position.Z + resultMatrix[2][1]
+			return x,z
+		end
+
+		local params = RaycastParams.new()
+		params.FilterDescendantsInstances = {obj}
+		params.FilterType = Enum.RaycastFilterType.Include
+
+		local x,z = getPosition(Vector2.new(0.9375,0.4375),-rot)
+		local ray1 = workspace:Raycast(Vector3.new(x,simulatedPos.Y - 1,z),Vector3.new(0,-2,0),params)
+
+		local x,z = getPosition(Vector2.new(-0.9375,0.4375),-rot)
+		local ray2 = workspace:Raycast(Vector3.new(x,simulatedPos.Y - 1,z),Vector3.new(0,-2,0),params)
+
+		local x,z = getPosition(Vector2.new(0.9375,-0.4375),-rot)
+		local ray3 = workspace:Raycast(Vector3.new(x,simulatedPos.Y - 1,z),Vector3.new(0,-2,0),params)
+
+		local x,z = getPosition(Vector2.new(-0.9375,-0.4375),-rot)
+		local ray4 = workspace:Raycast(Vector3.new(x,simulatedPos.Y - 1,z),Vector3.new(0,-2,0),params)
+
+		if ray1 and ray1.Position and (not highestray or ray1.Position.Y > highestray) then
+			highestray = ray1.Position.Y
+		end
+		if ray2 and ray2.Position and (not highestray or ray2.Position.Y > highestray) then
+			highestray = ray2.Position.Y
+		end
+		if ray3 and ray3.Position and (not highestray or ray3.Position.Y > highestray) then
+			highestray = ray3.Position.Y
+		end
+		if ray4 and ray4.Position and (not highestray or ray4.Position.Y > highestray) then
+			highestray = ray4.Position.Y
+		end
+		
+		return highestray
+	end
 
 	-- Update Ignore List Variable
 	if LocalPlayer and LocalPlayer.Character then
@@ -476,6 +527,8 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			projDuration = ping / 1000
 			if projDuration - simulatedTime <= interval then
 				interval = projDuration - simulatedTime
+			else
+				interval = originalInterval
 			end
 		else
 			if projectileGravity ~= 0 then
@@ -486,6 +539,8 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			projDuration = x / math.cos(launchAngle) / v + ping / 1000
 			if projDuration - simulatedTime <= interval then
 				interval = projDuration - simulatedTime
+			else
+				interval = originalInterval
 			end
 		end
 
@@ -506,18 +561,15 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		local checkFloorIntercept = workspace:Raycast(simulatedPos - Vector3.new(0,3,0),(prevSimulatedPos - Vector3.new(0,3,0)) - (simulatedPos - Vector3.new(0,3,0)),raycastParams) -- Checks if simulated point phases through the ground
 		local checkCeilIntercept = workspace:Raycast(simulatedPos + Vector3.new(0,2,0),(prevSimulatedPos + Vector3.new(0,2,0)) - (simulatedPos + Vector3.new(0,2,0)),raycastParams) -- Checks if simulated point phases through the ceiling
 
-		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Instance and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y then
+		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y then
 			simulatedPos = Vector3.new(simulatedPos.X,checkFloorIntercept.Position.Y + 3,simulatedPos.Z)
-			if predictSpamJump and targetHum.Jump then
-				
-			end
-		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Instance and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y then
+		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y then
 			simulatedPos = Vector3.new(simulatedPos.X,checkCeilIntercept.Position.Y - 2,simulatedPos.Z)
 		end
 
 		updatePositions() -- Update Hit Detection positions
 
-		local floorTouchingParts, wallTouchingParts, ceilTouchingParts = getTouchingParts() -- Get Touching Parts with ignore list
+		local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 
 		if #wallTouchingParts > 0 then -- Touching the wall
 			simulatedPos -= Vector3.new(moveDirection.X*playerWalkSpeed*interval,0,0)
@@ -532,17 +584,18 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				end
 			end
 		end
-		if #floorTouchingParts > 0 then -- Touching the floor
+		
+		local floorTouchingParts = checkTouchingParts(floorHit:GetTouchingParts(),ignoreList)
+		
+		if #floorTouchingParts > 0 and simulatedVel.Y <= interval then -- Touching the floor
 			local highest
 			for _, i in pairs(floorTouchingParts) do
-				if not table.find(wallTouchingParts,i) then
-					if not highest or i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y - 1 > i.Position.Y + i.Size.Y / 2 and i.Position.Y + i.Size.Y / 2 > highest then
-						highest = i.Position.Y + i.Size.Y / 2
-					else
-						local raycast = workspace:Raycast(simulatedPos - Vector3.new(0,1,0),Vector3.new(0,-3,0),raycastParams)
-						if raycast and raycast.Position and raycast.Position.Y > highest then
-							highest = raycast.Position.Y
-						end
+				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y - 1 > i.Position.Y + i.Size.Y / 2 and i.Position.Y + i.Size.Y / 2 > highest then
+					highest = i.Position.Y + i.Size.Y / 2
+				else
+					local height = checkHighest(i)
+					if height and (not highest or height > highest) then
+						highest = height
 					end
 				end
 			end
@@ -557,15 +610,18 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				frictionDeceleration = 144
 			end
 		end
-		if #ceilTouchingParts > 0 then -- Touching the ceiling
+		
+		local ceilTouchingParts = checkTouchingParts(ceilHit:GetTouchingParts(),ignoreList)
+		
+		if #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then -- Touching the ceiling
 			local lowest
 			for _, i in pairs(ceilTouchingParts) do
 				if not table.find(wallTouchingParts,i) then
-					if not lowest or i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1 < i.Position.Y + i.Size.Y / 2 and i.Position.Y - i.Size.Y / 2 < lowest then
+					if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1 < i.Position.Y + i.Size.Y / 2 and i.Position.Y - i.Size.Y / 2 < lowest then
 						lowest = i.Position.Y - i.Size.Y / 2
 					elseif not lowest then
 						local raycast = workspace:Raycast(simulatedPos + Vector3.new(0,1,0),Vector3.new(0,2,0),raycastParams)
-						if raycast and raycast.Position and raycast.Position.Y > lowest then
+						if raycast and raycast.Position and (not lowest or raycast.Position.Y > lowest) then
 							lowest = raycast.Position.Y
 						end
 					end
@@ -578,11 +634,14 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				frictionDeceleration = 144
 			end
 		end
+		
 		if #floorTouchingParts <= 0 and #ceilTouchingParts <= 0 then
 			frictionDeceleration = 144
 		end
 		-- Add Simulated Point To Table
-		table.insert(path,simulatedPos)
+		if projDuration - simulatedTime >= interval then
+			table.insert(path,simulatedPos)
+		end
 		simulatedTime += interval
 	end
 
