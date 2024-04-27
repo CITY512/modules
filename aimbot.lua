@@ -641,7 +641,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			frictionDeceleration = 144
 		end
 		-- Add Simulated Point To Table
-		if projDuration - simulatedTime >= interval then
+		if projDuration - simulatedTime >= originalInterval then
 			table.insert(path,simulatedPos)
 		end
 		simulatedTime += interval
