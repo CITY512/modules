@@ -456,8 +456,14 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			simulatedVel.Z*interval + frictionDeceleration*moveDirection.Z*interval^2/2
 		) -- Calculates next simulated point position
 	end
-	local function checkHighest(obj)
-		local highestray
+	local function checkHighestLowest(obj,typ)
+		local dirY
+		if typ == 1 then
+			dirY = -2
+		elseif typ == 2 then
+			dirY = 1
+		end
+		local priorityray
 		
 		local rot = floorHit.Orientation.Y
 		local function getPosition(offset,rot)
@@ -482,31 +488,31 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		params.FilterType = Enum.RaycastFilterType.Include
 
 		local x,z = getPosition(Vector2.new(0.9375,0.4375),-rot)
-		local ray1 = workspace:Raycast(Vector3.new(x,simulatedPos.Y - 1,z),Vector3.new(0,-2,0),params)
+		local ray1 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
 
 		local x,z = getPosition(Vector2.new(-0.9375,0.4375),-rot)
-		local ray2 = workspace:Raycast(Vector3.new(x,simulatedPos.Y - 1,z),Vector3.new(0,-2,0),params)
+		local ray2 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
 
 		local x,z = getPosition(Vector2.new(0.9375,-0.4375),-rot)
-		local ray3 = workspace:Raycast(Vector3.new(x,simulatedPos.Y - 1,z),Vector3.new(0,-2,0),params)
+		local ray3 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
 
 		local x,z = getPosition(Vector2.new(-0.9375,-0.4375),-rot)
-		local ray4 = workspace:Raycast(Vector3.new(x,simulatedPos.Y - 1,z),Vector3.new(0,-2,0),params)
+		local ray4 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
 
-		if ray1 and ray1.Position and (not highestray or ray1.Position.Y > highestray) then
-			highestray = ray1.Position.Y
+		if ray1 and ray1.Position and (not priorityray or ((typ == 1 and ray1.Position.Y > priorityray) or (typ == 2 and ray1.Position < priorityray))) then
+			priorityray = ray1.Position.Y
 		end
-		if ray2 and ray2.Position and (not highestray or ray2.Position.Y > highestray) then
-			highestray = ray2.Position.Y
+		if ray2 and ray2.Position and (not priorityray or ((typ == 1 and ray2.Position.Y > priorityray) or (typ == 2 and ray2.Position < priorityray))) then
+			priorityray = ray2.Position.Y
 		end
-		if ray3 and ray3.Position and (not highestray or ray3.Position.Y > highestray) then
-			highestray = ray3.Position.Y
+		if ray3 and ray3.Position and (not priorityray or ((typ == 1 and ray3.Position.Y > priorityray) or (typ == 2 and ray3.Position < priorityray))) then
+			priorityray = ray3.Position.Y
 		end
-		if ray4 and ray4.Position and (not highestray or ray4.Position.Y > highestray) then
-			highestray = ray4.Position.Y
+		if ray4 and ray4.Position and (not priorityray or ((typ == 1 and ray4.Position.Y > priorityray) or (typ == 2 and ray4.Position < priorityray))) then
+			priorityray = ray4.Position.Y
 		end
 		
-		return highestray
+		return priorityray
 	end
 
 	-- Update Ignore List Variable
@@ -595,7 +601,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y - 1 > i.Position.Y + i.Size.Y / 2 and (not highest or i.Position.Y + i.Size.Y / 2 > highest) then
 					highest = i.Position.Y + i.Size.Y / 2
 				else
-					local height = checkHighest(i)
+					local height = checkHighestLowest(i,1)
 					if height and (not highest or height > highest) then
 						highest = height
 					end
@@ -617,23 +623,19 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		
 		if #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then -- Touching the ceiling
 			local lowest
-			for _, i in pairs(ceilTouchingParts) do
-				if not table.find(wallTouchingParts,i) then
-					if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1 < i.Position.Y + i.Size.Y / 2 and (not lowest or i.Position.Y - i.Size.Y / 2 < lowest) then
-						lowest = i.Position.Y - i.Size.Y / 2
-					elseif not lowest then
-						local raycast = workspace:Raycast(simulatedPos + Vector3.new(0,1,0),Vector3.new(0,2,0),raycastParams)
-						if raycast and raycast.Position and (not lowest or raycast.Position.Y > lowest) then
-							lowest = raycast.Position.Y
-						end
+			for _, i in pairs(floorTouchingParts) do
+				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1.9 < i.Position.Y - i.Size.Y / 2 and (not lowest or i.Position.Y - i.Size.Y / 2 < lowest) then
+					lowest = i.Position.Y - i.Size.Y / 2
+				else
+					local low = checkHighestLowest(i,2)
+					if low and (not lowest or low < lowest) then
+						lowest = low
 					end
 				end
 			end
 			if lowest then
 				simulatedPos = Vector3.new(simulatedPos.X,lowest - 2,simulatedPos.Z)
 				simulatedVel *=  Vector3.new(1,-1,1)
-			else
-				frictionDeceleration = 144
 			end
 		end
 		
