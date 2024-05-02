@@ -559,6 +559,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 
 		local checkFloorIntercept = workspace:Raycast(simulatedPos - Vector3.new(0,3,0),(prevSimulatedPos - Vector3.new(0,3,0)) - (simulatedPos - Vector3.new(0,3,0)),raycastParams) -- Checks if simulated point phases through the ground
+		local checkWallIntercept = workspace:Raycast(simulatedPos,prevSimulatedPos - simulatedPos,raycastParams) -- Checks if simulated point phases through the ceiling
 		local checkCeilIntercept = workspace:Raycast(simulatedPos + Vector3.new(0,2,0),(prevSimulatedPos + Vector3.new(0,2,0)) - (simulatedPos + Vector3.new(0,2,0)),raycastParams) -- Checks if simulated point phases through the ceiling
 
 		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y then
@@ -572,17 +573,16 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 
 		if #wallTouchingParts > 0 then -- Touching the wall
-			local lookvec = CFrame.new(prevSimulatedPos,simulatedPos).LookVector
-			local dist = (simulatedPos - prevSimulatedPos).Magnitude
-			simulatedPos -= Vector3.new(lookvec.X*dist,0,0) -- Vector3.new(moveDirection.X*playerWalkSpeed*interval,0,0)
+			local dir = CFrame.new(simulatedPos,prevSimulatedPos).LookVector
+			simulatedPos += Vector3.new(prevSimulatedPos.X - simulatedPos.X,0,0)
 			updatePositions()
-			local wallTouchingParts2 = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
-			if #wallTouchingParts2 > 0 then 
-				simulatedPos -= Vector3.new(-lookvec.X*dist,0,lookvec.Z*dist) -- Vector3.new(-moveDirection.X*playerWalkSpeed*interval,0,moveDirection.Z*playerWalkSpeed*interval)
+			local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
+			if #wallTouchingParts > 0 then
+				simulatedPos -= Vector3.new(prevSimulatedPos.X - simulatedPos.X,0,-(prevSimulatedPos.Z - simulatedPos.Z))
 				updatePositions()
-				local wallTouchingParts3 = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
-				if #wallTouchingParts3 > 0 then
-					simulatedPos -= Vector3.new(0,0,lookvec.Z*dist)  -- Vector3.new(0,0,moveDirection.Z*playerWalkSpeed*interval)
+				local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
+				if #wallTouchingParts > 0 then
+					simulatedPos = prevSimulatedPos
 				end
 			end
 		end
