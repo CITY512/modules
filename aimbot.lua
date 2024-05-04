@@ -346,6 +346,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	local frictionDeceleration = 750
 	local path = {}
 	local moveDirection = targetHum.MoveDirection
+	local walkToPoint = targetHum.WalkToPoint
 	local prevSimulatedPos
 	local pg = projectileGravity
 	local v = projectileSpeed
@@ -520,7 +521,14 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		table.insert(ignoreList,LocalPlayer.Character)
 	end
 	ignoreList = tableConcat(ignoreList,{targetCharacter,ceilHit,wallHit,floorHit})
-
+	
+	-- Check Move Direction
+	if moveDirection == Vector3.new(0,0,0) then -- if walking is called by :MoveTo() instead of :Move()
+		if walkToPoint ~= Vector3.new(0,0,0) then
+			moveDirection = CFrame.new(targetRoot.Position * Vector3.new(1,0,1), walkToPoint * Vector3.new(1,0,1)).LookVector
+		end
+	end
+	
 	-- Simulation
 	while true do -- Repeats until the projectile meets the simulated point
 		simulatedPos += Vector3.new(0,aimHeight,0)
@@ -555,7 +563,10 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		if simulatedTime >= projDuration or simulatedTime >= maxSimulationTime or simulatedPos.Y <= workspace.FallenPartsDestroyHeight then break end
 
 		prevSimulatedPos = simulatedPos -- Previous Simulated Position
-
+		if walkToPoint ~= Vector3.new(0,0,0) and (walkToPoint * Vector3.new(1,0,1) - simulatedPos * Vector3.new(1,0,1)).Magnitude <= 2 then
+			moveDirection = Vector3.new(0,0,0)
+		end
+		
 		simulationStep()
 
 		simulatedVel -= Vector3.new(0,gravity*interval,0) -- Decreasing Y Velocity due to Gravity Acceleration
