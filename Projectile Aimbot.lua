@@ -319,7 +319,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	-- Simulation Configurations
 	local ignoreList = argumentTable.IgnoreList or {}
 	local interval = argumentTable.Interval or 1/80
-	local maxSimulationTime = argumentTable.maxSimulationTime or 60
+	local maxSimulationTime = argumentTable.MaxSimulationTime or 60
 	local ignoreCantCollide = argumentTable.IgnoreCantCollide
 	if ignoreCantCollide ~= false then
 		ignoreCantCollide = true
