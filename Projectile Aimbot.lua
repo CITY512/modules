@@ -280,7 +280,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	-- Target Character
 	assert(targetCharacter,"Target character is required")
 	assert(typeof(targetCharacter) == "Instance","Target character must be a Model")
-	
+
 	local targetHum
 	local targetRoot
 	if targetCharacter.ClassName == "Model" then
@@ -361,7 +361,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	local y
 
 	-- Hit Detection
-	
+
 	local floorHit = Instance.new("Part", workspace)
 	floorHit.Size = Vector3.new(2,2,1)
 	floorHit.CFrame = CFrame.new(targetRoot.Position - Vector3.new(0,2.001,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
@@ -407,7 +407,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		wallHit.Position = simulatedPos
 		ceilHit.Position = simulatedPos + Vector3.new(0,1.5,0)
 	end
-	
+
 	local function checkOrientation(basePart)
 		return (math.abs(basePart.Orientation.X) ~= 0 and math.abs(basePart.Orientation.X) ~= 180) and (math.abs(basePart.Orientation.Z) ~= 0 and math.abs(basePart.Orientation.Z) ~= 180)
 	end
@@ -421,9 +421,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			end
 			if simulatedVel[axis] > goal then
 				if axis == "X" then
-					simulatedVel -= Vector3.new(frictionDeceleration * interval * math.abs(moveDirection[axis]),0,0)
+					simulatedVel -= Vector3.new(frictionDeceleration * interval,0,0)
 				elseif axis == "Z" then
-					simulatedVel -= Vector3.new(0,0,frictionDeceleration * interval * math.abs(moveDirection[axis]))
+					simulatedVel -= Vector3.new(0,0,frictionDeceleration * interval)
 				end
 				if simulatedVel[axis] < goal then
 					if axis == "X" then
@@ -434,9 +434,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				end
 			elseif simulatedVel[axis] < goal then
 				if axis == "X" then
-					simulatedVel += Vector3.new(frictionDeceleration * interval * math.abs(moveDirection[axis]),0,0)
+					simulatedVel += Vector3.new(frictionDeceleration * interval,0,0)
 				elseif axis == "Z" then
-					simulatedVel += Vector3.new(0,0,frictionDeceleration * interval * math.abs(moveDirection[axis]))
+					simulatedVel += Vector3.new(0,0,frictionDeceleration * interval)
 				end
 				if simulatedVel[axis] > goal then
 					if axis == "X" then
@@ -470,7 +470,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			dirY = 1
 		end
 		local priorityray
-		
+
 		local rot = floorHit.Orientation.Y
 		local function getPosition(offset,rot)
 			local positionMatrix = {
@@ -517,7 +517,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		if ray4 and ray4.Position and (not priorityray or ((typ == 1 and ray4.Position.Y > priorityray) or (typ == 2 and ray4.Position < priorityray))) then
 			priorityray = ray4.Position.Y
 		end
-		
+
 		return priorityray
 	end
 
@@ -526,14 +526,14 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		table.insert(ignoreList,LocalPlayer.Character)
 	end
 	ignoreList = tableConcat(ignoreList,{targetCharacter,ceilHit,wallHit,floorHit})
-	
+
 	-- Check Move Direction
 	if moveDirection == Vector3.new(0,0,0) then -- if walking is called by :MoveTo() instead of :Move()
 		if walkToPoint ~= Vector3.new(0,0,0) then
 			moveDirection = CFrame.new(targetRoot.Position * Vector3.new(1,0,1), walkToPoint * Vector3.new(1,0,1)).LookVector
 		end
 	end
-	
+
 	-- Simulation
 	while true do -- Repeats until the projectile meets the simulated point
 		simulatedPos += Vector3.new(0,aimHeight,0)
@@ -571,7 +571,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		if walkToPoint ~= Vector3.new(0,0,0) and (walkToPoint * Vector3.new(1,0,1) - simulatedPos * Vector3.new(1,0,1)).Magnitude <= 2 then
 			moveDirection = Vector3.new(0,0,0)
 		end
-		
+
 		simulationStep()
 
 		simulatedVel -= Vector3.new(0,gravity*interval,0) -- Decreasing Y Velocity due to Gravity Acceleration
@@ -608,9 +608,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				end
 			end
 		end
-		
+
 		local floorTouchingParts = checkTouchingParts(floorHit:GetTouchingParts(),ignoreList)
-		
+
 		if #floorTouchingParts > 0 and simulatedVel.Y <= interval then -- Touching the floor
 			local highest
 			for _, i in pairs(floorTouchingParts) do
@@ -634,9 +634,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				frictionDeceleration = 144
 			end
 		end
-		
+
 		local ceilTouchingParts = checkTouchingParts(ceilHit:GetTouchingParts(),ignoreList)
-		
+
 		if #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then -- Touching the ceiling
 			local lowest
 			for _, i in pairs(floorTouchingParts) do
@@ -654,7 +654,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				simulatedVel *=  Vector3.new(1,-1,1)
 			end
 		end
-		
+
 		if #floorTouchingParts <= 0 and #ceilTouchingParts <= 0 then
 			frictionDeceleration = 144
 		end
