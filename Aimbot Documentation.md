@@ -1,13 +1,13 @@
 ## Main Module
 
 ```lua
-local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY512/modules/main/Projectile%20Aimbot.lua"))()
+local aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY512/modules/main/Projectile%20Aimbot.lua"))()
 ```
 
 ### Projectile Aimbot
 
 ```lua
-local Path, AimPosition = Aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity{
+local path, aimVector = aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity{
 	WalkSpeed = 16
 	JumpPower = 50
 	PredictSpamJump = false
