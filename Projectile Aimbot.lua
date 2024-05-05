@@ -320,8 +320,12 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	local ignoreList = argumentTable.IgnoreList or {}
 	local interval = argumentTable.Interval or 1/80
 	local maxSimulationTime = argumentTable.maxSimulationTime or 60
+	local ignoreCantCollide = argumentTable.IgnoreCantCollide
+	if ignoreCantCollide ~= false then
+		ignoreCantCollide = true
+	end
 
-	-- Assert Configurations
+	-- Assert
 	assert(typeof(ignoreList) == "table","IgnoreList must be a table")
 
 	for _, i in pairs(ignoreList) do
@@ -332,6 +336,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	assert(typeof(playerJumpPower) == "number","JumpPower must be a number (studs/s)")
 	assert(typeof(predictSpamJump) == "boolean","Predict Spam Jump must be a boolean")
 	assert(typeof(gravity) == "number","Gravity must be a number (studs/s²)")
+	assert(typeof(ignoreCantCollide) == "boolean","IgnoreCanCollide must be a boolean")
 	assert(typeof(ping) == "number","Ping must be a number (ms)")
 	assert(typeof(aimHeight) == "number","Aim Height must be a number (studs)")
 	assert(typeof(isAGun) == "boolean","IsAGun must be a boolean")
@@ -391,7 +396,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			return inside
 		end
 		for _, v in pairs(tab) do
-			if not table.find(ignoreDescendantsInstances,v) and not checkInsideIgnoreList(v) then
+			if not table.find(ignoreDescendantsInstances,v) and not checkInsideIgnoreList(v) and (not ignoreCantCollide or v.CanCollide) then
 				table.insert(touchingParts,v)
 			end
 		end
