@@ -7,7 +7,7 @@ local aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY51
 ### Projectile Aimbot
 
 ```lua
-aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity{
+local path, aimPosition = aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity{
 	WalkSpeed = 16
 	JumpPower = 50
 	PredictSpamJump = false
