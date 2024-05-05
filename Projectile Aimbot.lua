@@ -412,7 +412,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		return (math.abs(basePart.Orientation.X) ~= 0 and math.abs(basePart.Orientation.X) ~= 180) and (math.abs(basePart.Orientation.Z) ~= 0 and math.abs(basePart.Orientation.Z) ~= 180)
 	end
 	local function simulationStep()
-		local function calculateMovementOnAxis(axis)
+		local function calculateVelocityOnAxis(axis)
 			local goal
 			if axis == "X" then
 				goal = moveDirection.X * playerWalkSpeed
@@ -421,9 +421,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			end
 			if simulatedVel[axis] > goal then
 				if axis == "X" then
-					simulatedVel -= Vector3.new(frictionDeceleration * interval,0,0)
+					simulatedVel -= Vector3.new(frictionDeceleration * math.abs(moveDirection.X) * interval,0,0)
 				elseif axis == "Z" then
-					simulatedVel -= Vector3.new(0,0,frictionDeceleration * interval)
+					simulatedVel -= Vector3.new(0,0,frictionDeceleration * math.abs(moveDirection.Z) * interval)
 				end
 				if simulatedVel[axis] < goal then
 					if axis == "X" then
@@ -434,9 +434,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				end
 			elseif simulatedVel[axis] < goal then
 				if axis == "X" then
-					simulatedVel += Vector3.new(frictionDeceleration * interval,0,0)
+					simulatedVel += Vector3.new(frictionDeceleration * math.abs(moveDirection.X) * interval,0,0)
 				elseif axis == "Z" then
-					simulatedVel += Vector3.new(0,0,frictionDeceleration * interval)
+					simulatedVel += Vector3.new(0,0,frictionDeceleration * math.abs(moveDirection.Z) * interval)
 				end
 				if simulatedVel[axis] > goal then
 					if axis == "X" then
@@ -453,14 +453,15 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				end
 			end
 		end
-		calculateMovementOnAxis("X")
-		calculateMovementOnAxis("Z")
 
 		simulatedPos += Vector3.new(
 			simulatedVel.X*interval + frictionDeceleration*moveDirection.X*interval^2/2,
 			simulatedVel.Y*interval + -gravity*interval^2/2,
 			simulatedVel.Z*interval + frictionDeceleration*moveDirection.Z*interval^2/2
 		) -- Calculates next simulated point position
+		
+		calculateVelocityOnAxis("X")
+		calculateVelocityOnAxis("Z")
 	end
 	local function checkHighestLowest(obj,typ)
 		local dirY
