@@ -19,5 +19,5 @@ local path, aimVector = aimbot:ComputePathAsync(startPosition,targetCharacter,pr
 	Interval = 1/80
 	MaxSimulationTime = 60
 	IgnoreCantCollide = true
-}
+})
 ```
