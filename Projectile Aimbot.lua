@@ -364,7 +364,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 
 	local floorHit = Instance.new("Part", workspace)
 	floorHit.Size = Vector3.new(2,2,1)
-	floorHit.CFrame = CFrame.new(targetRoot.Position - Vector3.new(0,2.001,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
+	floorHit.CFrame = CFrame.new(targetRoot.Position - Vector3.new(0,2,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
 	floorHit.Anchored = true
 
 	local wallHit = Instance.new("Part", workspace)
@@ -374,7 +374,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 
 	local ceilHit = Instance.new("Part", workspace)
 	ceilHit.Size = Vector3.new(2,1,1)
-	ceilHit.CFrame = CFrame.new(targetRoot.Position + Vector3.new(0,1.501,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
+	ceilHit.CFrame = CFrame.new(targetRoot.Position + Vector3.new(0,1.5,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
 	ceilHit.Anchored = true
 
 	-- Functions
