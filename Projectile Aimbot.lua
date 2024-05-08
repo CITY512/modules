@@ -459,7 +459,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			simulatedVel.Y*interval + -gravity*interval^2/2,
 			simulatedVel.Z*interval + frictionDeceleration*moveDirection.Z*interval^2/2
 		) -- Calculates next simulated point position
-		
+
 		calculateVelocityOnAxis("X")
 		calculateVelocityOnAxis("Z")
 	end
