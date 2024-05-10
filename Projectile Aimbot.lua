@@ -632,7 +632,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 					simulatedVel = Vector3.new(simulatedVel.X,playerJumpPower,simulatedVel.Z)
 				end
 			else
-				frictionDeceleration = 143
+				frictionDeceleration = 75
 			end
 		end
 
@@ -641,7 +641,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		if #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then -- Touching the ceiling
 			local lowest
 			for _, i in pairs(floorTouchingParts) do
-				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1.9 < i.Position.Y - i.Size.Y / 2 and (not lowest or i.Position.Y - i.Size.Y / 2 < lowest) then
+				if (i.ClassName == "Part" or i.ClassName == "SpawnLocation") and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1.9 < i.Position.Y - i.Size.Y / 2 and (not lowest or i.Position.Y - i.Size.Y / 2 < lowest) then
 					lowest = i.Position.Y - i.Size.Y / 2
 				else
 					local low = checkHighestLowest(i,2)
@@ -657,7 +657,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		end
 
 		if #floorTouchingParts <= 0 and #ceilTouchingParts <= 0 then
-			frictionDeceleration = 143
+			frictionDeceleration = 75
 		end
 		-- Add Simulated Point To Table
 		if projDuration - simulatedTime >= originalInterval then
