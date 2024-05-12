@@ -632,7 +632,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 					simulatedVel = Vector3.new(simulatedVel.X,playerJumpPower,simulatedVel.Z)
 				end
 			else
-				frictionDeceleration = 75
+				frictionDeceleration = 142
 			end
 		end
 
@@ -657,7 +657,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		end
 
 		if #floorTouchingParts <= 0 and #ceilTouchingParts <= 0 then
-			frictionDeceleration = 75
+			frictionDeceleration = 142
 		end
 		-- Add Simulated Point To Table
 		if projDuration - simulatedTime >= originalInterval then
