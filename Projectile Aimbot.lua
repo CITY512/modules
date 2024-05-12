@@ -585,9 +585,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		local checkWallIntercept = workspace:Raycast(simulatedPos,prevSimulatedPos - simulatedPos,raycastParams) -- Checks if simulated point phases through the ceiling
 		local checkCeilIntercept = workspace:Raycast(simulatedPos + Vector3.new(0,2,0),(prevSimulatedPos + Vector3.new(0,2,0)) - (simulatedPos + Vector3.new(0,2,0)),raycastParams) -- Checks if simulated point phases through the ceiling
 
-		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y then
+		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y and checkFloorIntercept.Instance and (not ignoreCantCollide or checkFloorIntercept.Instance.CanCollide) then
 			simulatedPos = Vector3.new(simulatedPos.X,checkFloorIntercept.Position.Y + 3,simulatedPos.Z)
-		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y then
+		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y and checkCeilIntercept.Instance and (not ignoreCantCollide or checkCeilIntercept.Instance.CanCollide) then
 			simulatedPos = Vector3.new(simulatedPos.X,checkCeilIntercept.Position.Y - 2,simulatedPos.Z)
 		end
 
