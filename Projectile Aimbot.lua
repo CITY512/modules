@@ -631,6 +631,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				if predictSpamJump and targetHum.Jump then
 					simulatedVel = Vector3.new(simulatedVel.X,playerJumpPower,simulatedVel.Z)
 				end
+				updatePositions()
 			else
 				frictionDeceleration = 142
 			end
