@@ -48,7 +48,7 @@ end
 ```lua
 if aimVector then
 	local container = Instance.new("Folder", workspace)
-	container.Name = "path"
+	container.Name = "aimpos"
 	local part = Instance.new("Part", container)
 	part.Name = "aimpos"
 	part.Color = Color3.new(0,0,0)
