@@ -20,7 +20,7 @@ local path, aimVector = aimbot:ComputePathAsync(startPosition,targetCharacter,pr
 ```
 ### Display Calculated Movements
 ```lua
-function showCalculations()
+if path then
 	local hue = 0
 	local container = Instance.new("Folder", workspace)
 	container.Name = "path"
@@ -40,9 +40,6 @@ function showCalculations()
 			hue = 0
 		end
 	end
-end
-if path then
-	spawn(showCalculations)
 end
 ```
 ### Display Aim Position
