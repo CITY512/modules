@@ -1,11 +1,8 @@
 ## Main Module
-
 ```lua
 local aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY512/modules/main/Projectile%20Aimbot.lua"))()
 ```
-
 ### Projectile Aimbot
-
 ```lua
 local path, aimVector = aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity,{
 	WalkSpeed = 16;
@@ -20,4 +17,45 @@ local path, aimVector = aimbot:ComputePathAsync(startPosition,targetCharacter,pr
 	MaxSimulationTime = 60;
 	IgnoreCantCollide = true;
 })
+```
+### Display Calculated Movements
+```lua
+function showCalculations()
+	local hue = 0
+	local container = Instance.new("Folder", workspace)
+	container.Name = "path"
+	for _, i in pairs(path) do
+		local part = Instance.new("Part", container)
+		part.Color = Color3.fromHSV(hue/360, 0.458824, 1)
+		part.Size = Vector3.new(0.75,0.75,0.75)
+		part.Shape = Enum.PartType.Ball
+		part.Position = i
+		part.Anchored = true
+		part.CanCollide = false
+		part.TopSurface = Enum.SurfaceType.Smooth
+		part.BottomSurface = Enum.SurfaceType.Smooth
+
+		hue += 3
+		if hue >= 360 then
+			hue = 0
+		end
+	end
+end
+if path then
+	spawn(showCalculations)
+end
+```
+### Display Aim Position
+```lua
+if aimVector then
+	local part = Instance.new("Part", container)
+	part.Color = Color3.new(0,0,0)
+	part.Size = Vector3.new(0.75,0.75,0.75)
+	part.Shape = Enum.PartType.Ball
+	part.Position = i
+	part.Anchored = true
+	part.CanCollide = false
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+end
 ```
