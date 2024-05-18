@@ -24,12 +24,13 @@ if path then
 	local hue = 0
 	local container = Instance.new("Folder", workspace)
 	container.Name = "path"
-	for _, i in pairs(path) do
+	for i, v in pairs(path) do
 		local part = Instance.new("Part", container)
+		part.Name = i
 		part.Color = Color3.fromHSV(hue/360, 0.458824, 1)
 		part.Size = Vector3.new(0.75,0.75,0.75)
 		part.Shape = Enum.PartType.Ball
-		part.Position = i
+		part.Position = v
 		part.Anchored = true
 		part.CanCollide = false
 		part.TopSurface = Enum.SurfaceType.Smooth
@@ -48,6 +49,7 @@ if aimVector then
 	local container = Instance.new("Folder", workspace)
 	container.Name = "path"
 	local part = Instance.new("Part", container)
+	part.Name = "aimpos"
 	part.Color = Color3.new(0,0,0)
 	part.Size = Vector3.new(0.75,0.75,0.75)
 	part.Shape = Enum.PartType.Ball
