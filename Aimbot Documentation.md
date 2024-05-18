@@ -25,7 +25,7 @@ if path then
 	local hue = 0
 	local container = Instance.new("Folder", workspace)
 	container.Name = "path"
-	for i, v in pairs(path) do
+	for i, v in ipairs(path) do
 		local part = Instance.new("Part", container)
 		part.Name = i
 		part.Color = Color3.fromHSV(hue/360, 0.458824, 1)
