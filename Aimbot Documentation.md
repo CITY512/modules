@@ -1,4 +1,4 @@
-### Main Module
+# Main Module
 ```lua
 local aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY512/modules/main/Projectile%20Aimbot.lua"))()
 ```
