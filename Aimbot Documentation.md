@@ -45,6 +45,8 @@ end
 ### Display Aim Position
 ```lua
 if aimVector then
+	local container = Instance.new("Folder", workspace)
+	container.Name = "path"
 	local part = Instance.new("Part", container)
 	part.Color = Color3.new(0,0,0)
 	part.Size = Vector3.new(0.75,0.75,0.75)
