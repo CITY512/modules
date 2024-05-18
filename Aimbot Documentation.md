@@ -2,7 +2,7 @@
 ```lua
 local aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY512/modules/main/Projectile%20Aimbot.lua"))()
 ```
-### Projectile Aimbot
+### Aimbot
 ```lua
 local path, aimVector = aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity,{
 	WalkSpeed = 16;
