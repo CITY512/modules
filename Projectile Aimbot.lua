@@ -593,8 +593,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		if simulatedTime >= projDuration or simulatedTime >= maxSimulationTime or simulatedPos.Y <= workspace.FallenPartsDestroyHeight then break end
 
 		prevSimulatedPos = simulatedPos -- Previous Simulated Position
-		if walkToPoint ~= Vector3.new(0,0,0) and (walkToPoint * Vector3.new(1,0,1) - simulatedPos * Vector3.new(1,0,1)).Magnitude <= 2 then
-			moveDirection = Vector3.new(0,0,0)
+		
+		if walkToPoint ~= Vector3.new(0,0,0) then
+			moveDirection = CFrame.new(targetRoot.Position * Vector3.new(1,0,1), walkToPoint * Vector3.new(1,0,1)).LookVector
 		end
 
 		simulationStep()
@@ -703,7 +704,8 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 
 	-- Calculate Aim Position
 	local aimPosition = Vector3.new(simulatedPos.X,(x * math.tan(launchAngle))+startPosition.Y,simulatedPos.Z)
-
+	print(projDuration)
+	
 	-- Return Values
 	return path, aimPosition
 end
