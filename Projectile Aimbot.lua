@@ -704,7 +704,6 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 
 	-- Calculate Aim Position
 	local aimPosition = Vector3.new(simulatedPos.X,(x * math.tan(launchAngle))+startPosition.Y,simulatedPos.Z)
-	print(projDuration)
 	
 	-- Return Values
 	return path, aimPosition
