@@ -326,6 +326,8 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	end
 
 	-- Assert
+	assert(interval > 0,"INTERVAlS CANNOT NOT BE 0 NOR NEGATIVE")
+	assert(ping > 0,"PING CANNOT BE NEGATIVE")
 	assert(typeof(ignoreList) == "table","IgnoreList must be a table")
 
 	for _, i in pairs(ignoreList) do
