@@ -1,5 +1,4 @@
 local aimbot = {}
-
 local Materials = {
 	["Asphalt"] = {
 		["Elasticity"] = 0.2;
@@ -266,21 +265,15 @@ local Materials = {
 		["FrictionWeight"] = 1;
 	};
 }
-
 function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity,argumentTable)
-	-- Start Position
-
 	local LocalPlayer
 	if game.Players.LocalPlayer then
 		LocalPlayer = game.Players.LocalPlayer
 	end
 	assert(startPosition,"startpos is required")
 	assert(typeof(startPosition) == "Vector3","startpos must be a Vector3")
-
-	-- Target Character
 	assert(targetCharacter,"Target character is required")
 	assert(typeof(targetCharacter) == "Instance","Target character must be a Model")
-
 	local targetHum
 	local targetRoot
 	if targetCharacter.ClassName == "Model" then
@@ -296,27 +289,17 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	else
 		error("Target character must be a character model")
 	end
-
-	-- Projectile Configurations
 	assert(projectileSpeed,"Projectile Speed is required")
 	assert(typeof(projectileSpeed) == "number","Projectile Speed must be a number (studs/s)")
 	assert(projectileGravity,"Projectile Gravity is required")
 	assert(typeof(projectileGravity) == "number","Projectile Gravity must be a number (studs/s²)")
-
-	-- Player Configurations
 	local playerWalkSpeed = argumentTable.WalkSpeed or targetHum.WalkSpeed
 	local playerJumpPower = argumentTable.JumpPower or targetHum.JumpPower
 	local predictSpamJump = argumentTable.PredictSpamJump or false
-
-	-- Workspace Configurations
 	local gravity = argumentTable.Gravity or workspace.Gravity
-
-	-- Aimbot Configurations
 	local ping = argumentTable.Ping or 50
 	local aimHeight = argumentTable.AimHeight or 0
 	local isAGun = argumentTable.IsAGun or false
-
-	-- Simulation Configurations
 	local ignoreList = argumentTable.IgnoreList or {}
 	local interval = argumentTable.Interval or 1/80
 	local maxSimulationTime = argumentTable.MaxSimulationTime or 60
@@ -324,16 +307,12 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	if ignoreCantCollide ~= false then
 		ignoreCantCollide = true
 	end
-
-	-- Assert
 	assert(interval > 0,"INTERVAlS CANNOT NOT BE 0 NOR NEGATIVE")
 	assert(ping >= 0,"PING CANNOT BE NEGATIVE")
 	assert(typeof(ignoreList) == "table","IgnoreList must be a table")
-
 	for _, i in pairs(ignoreList) do
 		assert(typeof(i) == "Instance","Ignore list elements must be Instances")
 	end
-
 	assert(typeof(playerWalkSpeed) == "number","WalkSpeed must be a number (studs/s)")
 	assert(typeof(playerJumpPower) == "number","JumpPower must be a number (studs/s)")
 	assert(typeof(predictSpamJump) == "boolean","Predict Spam Jump must be a boolean")
@@ -344,8 +323,6 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	assert(typeof(isAGun) == "boolean","IsAGun must be a boolean")
 	assert(typeof(interval) == "number","Interval must be a number")
 	assert(typeof(maxSimulationTime) == "number","Maximum Calculations must be a number")
-
-	-- Variables
 	local originalInterval = interval
 	local simulatedPos = targetRoot.Position
 	local simulatedVel = targetRoot.Velocity
@@ -362,28 +339,21 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	local projDuration
 	local x
 	local y
-
-	-- Hit Detection
-
 	local floorHit = Instance.new("Part", workspace)
 	floorHit.Name = "floorHit"
 	floorHit.Size = Vector3.new(2,2,1)
 	floorHit.CFrame = CFrame.new(targetRoot.Position - Vector3.new(0,2,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
 	floorHit.Anchored = true
-
 	local wallHit = Instance.new("Part", workspace)
 	wallHit.Name = "wallHit"
 	wallHit.Size = Vector3.new(2,2,1)
 	wallHit.CFrame = CFrame.new(targetRoot.Position) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
 	wallHit.Anchored = true
-
 	local ceilHit = Instance.new("Part", workspace)
 	ceilHit.Name = "ceilHit"
 	ceilHit.Size = Vector3.new(2,1,1)
 	ceilHit.CFrame = CFrame.new(targetRoot.Position + Vector3.new(0,1.5,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0)
 	ceilHit.Anchored = true
-
-	-- Functions
 	local function tableConcat(t1,t2)
 		for i = 1, #t2, 1 do
 			table.insert(t1,t2[i])
@@ -486,8 +456,7 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			simulatedVel.X*interval + frictionDeceleration*moveDirection.X*interval^2/2,
 			simulatedVel.Y*interval + -gravity*interval^2/2,
 			simulatedVel.Z*interval + frictionDeceleration*moveDirection.Z*interval^2/2
-		) -- Calculates next simulated point position
-
+		)
 		calculateVelocityOnAxis("X")
 		calculateVelocityOnAxis("Z")
 	end
@@ -499,7 +468,6 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			dirY = 1
 		end
 		local priorityray
-		
 		local rot = floorHit.Orientation.Y
 		local function getPosition(offset,rot)
 			local positionMatrix = {
@@ -517,23 +485,17 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 			local x,z = floorHit.Position.X + resultMatrix[1][1],floorHit.Position.Z + resultMatrix[2][1]
 			return x,z
 		end
-
 		local params = RaycastParams.new()
 		params.FilterDescendantsInstances = {obj}
 		params.FilterType = Enum.RaycastFilterType.Include
-
 		local x,z = getPosition(Vector2.new(0.9375,0.4375),-rot)
 		local ray1 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-
 		local x,z = getPosition(Vector2.new(-0.9375,0.4375),-rot)
 		local ray2 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-
 		local x,z = getPosition(Vector2.new(0.9375,-0.4375),-rot)
 		local ray3 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-
 		local x,z = getPosition(Vector2.new(-0.9375,-0.4375),-rot)
 		local ray4 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-
 		if ray1 and ray1.Position and (not priorityray or ((typ == 1 and ray1.Position.Y > priorityray) or (typ == 2 and ray1.Position < priorityray))) then
 			priorityray = ray1.Position.Y
 		end
@@ -546,12 +508,9 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 		if ray4 and ray4.Position and (not priorityray or ((typ == 1 and ray4.Position.Y > priorityray) or (typ == 2 and ray4.Position < priorityray))) then
 			priorityray = ray4.Position.Y
 		end
-
 		return priorityray
 	end
-
-	-- Check Move Direction
-	if moveDirection == Vector3.new(0,0,0) then -- if walking is called by :MoveTo() instead of :Move()
+	if moveDirection == Vector3.new(0,0,0) then
 		if walkToPoint ~= Vector3.new(0,0,0) then
 			moveDirection = CFrame.new(targetRoot.Position * Vector3.new(1,0,1), walkToPoint * Vector3.new(1,0,1)).LookVector
 		end
@@ -560,14 +519,10 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 	if LocalPlayer.Character then
 		table.insert(simulationIgnoreList,LocalPlayer.Character)
 	end
-	
-	-- Simulation
-	while true do -- Repeats until the projectile meets the simulated point
+	while true do
 		simulatedPos += Vector3.new(0,aimHeight,0)
-
 		x = (Vector2.new(simulatedPos.X,simulatedPos.Z) - Vector2.new(startPosition.X,startPosition.Z)).Magnitude
 		y = simulatedPos.Y - startPosition.Y
-
 		if isAGun then
 			launchAngle = math.atan(y/x)
 			projDuration = ping / 1000
@@ -589,40 +544,28 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				interval = originalInterval
 			end
 		end
-
 		simulatedPos -= Vector3.new(0,aimHeight,0)
-
 		if simulatedTime >= projDuration or simulatedTime >= maxSimulationTime or simulatedPos.Y <= workspace.FallenPartsDestroyHeight then break end
-
-		prevSimulatedPos = simulatedPos -- Previous Simulated Position
-		
+		prevSimulatedPos = simulatedPos
 		if walkToPoint ~= Vector3.new(0,0,0) then
 			moveDirection = CFrame.new(targetRoot.Position * Vector3.new(1,0,1), walkToPoint * Vector3.new(1,0,1)).LookVector
 		end
-
 		simulationStep()
-
-		simulatedVel -= Vector3.new(0,gravity*interval,0) -- Decreasing Y Velocity due to Gravity Acceleration
-
+		simulatedVel -= Vector3.new(0,gravity*interval,0)
 		local raycastParams = RaycastParams.new()
 		raycastParams.FilterDescendantsInstances = simulationIgnoreList
 		raycastParams.FilterType = Enum.RaycastFilterType.Exclude
-
-		local checkFloorIntercept = workspace:Raycast(simulatedPos - Vector3.new(0,3,0),(prevSimulatedPos - Vector3.new(0,3,0)) - (simulatedPos - Vector3.new(0,3,0)),raycastParams) -- Checks if simulated point phases through the ground
-		local checkWallIntercept = workspace:Raycast(simulatedPos,prevSimulatedPos - simulatedPos,raycastParams) -- Checks if simulated point phases through the ceiling
-		local checkCeilIntercept = workspace:Raycast(simulatedPos + Vector3.new(0,2,0),(prevSimulatedPos + Vector3.new(0,2,0)) - (simulatedPos + Vector3.new(0,2,0)),raycastParams) -- Checks if simulated point phases through the ceiling
-
+		local checkFloorIntercept = workspace:Raycast(simulatedPos - Vector3.new(0,3,0),(prevSimulatedPos - Vector3.new(0,3,0)) - (simulatedPos - Vector3.new(0,3,0)),raycastParams)
+		local checkWallIntercept = workspace:Raycast(simulatedPos,prevSimulatedPos - simulatedPos,raycastParams)
+		local checkCeilIntercept = workspace:Raycast(simulatedPos + Vector3.new(0,2,0),(prevSimulatedPos + Vector3.new(0,2,0)) - (simulatedPos + Vector3.new(0,2,0)),raycastParams)
 		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y and checkFloorIntercept.Instance and (not ignoreCantCollide or checkFloorIntercept.Instance.CanCollide) then
 			simulatedPos = Vector3.new(simulatedPos.X,checkFloorIntercept.Position.Y + 3,simulatedPos.Z)
 		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y and checkCeilIntercept.Instance and (not ignoreCantCollide or checkCeilIntercept.Instance.CanCollide) then
 			simulatedPos = Vector3.new(simulatedPos.X,checkCeilIntercept.Position.Y - 2,simulatedPos.Z)
 		end
-
-		updatePositions() -- Update Hit Detection positions
-
+		updatePositions()
 		local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
-
-		if #wallTouchingParts > 0 then -- Touching the wall
+		if #wallTouchingParts > 0 then
 			local dir = CFrame.new(prevSimulatedPos,simulatedPos).LookVector
 			simulatedPos += Vector3.new(prevSimulatedPos.X - simulatedPos.X,0,0)
 			updatePositions()
@@ -636,10 +579,8 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				end
 			end
 		end
-
 		local floorTouchingParts = checkTouchingParts(floorHit:GetTouchingParts(),ignoreList)
-
-		if #floorTouchingParts > 0 and simulatedVel.Y <= interval then -- Touching the floor
+		if #floorTouchingParts > 0 and simulatedVel.Y <= interval then
 			local highest
 			for _, i in pairs(floorTouchingParts) do
 				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y - 1 > i.Position.Y + i.Size.Y / 2 and (not highest or i.Position.Y + i.Size.Y / 2 > highest) then
@@ -663,10 +604,8 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				frictionDeceleration = 142
 			end
 		end
-
 		local ceilTouchingParts = checkTouchingParts(ceilHit:GetTouchingParts(),ignoreList)
-
-		if #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then -- Touching the ceiling
+		if #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then
 			local lowest
 			for _, i in pairs(floorTouchingParts) do
 				if (i.ClassName == "Part" or i.ClassName == "SpawnLocation") and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1.9 < i.Position.Y - i.Size.Y / 2 and (not lowest or i.Position.Y - i.Size.Y / 2 < lowest) then
@@ -683,32 +622,19 @@ function aimbot:ComputePathAsync(startPosition,targetCharacter,projectileSpeed,p
 				simulatedVel *=  Vector3.new(1,-1,1)
 			end
 		end
-
 		if #floorTouchingParts <= 0 and #ceilTouchingParts <= 0 then
 			frictionDeceleration = 142
 		end
-		
-		-- Add Simulated Point To Table
 		if projDuration - simulatedTime >= originalInterval then
 			table.insert(path,simulatedPos)
 		end
-		
 		simulatedTime += interval
 	end
-
-	-- Destroy Hit Detections
 	floorHit:Destroy()
 	wallHit:Destroy()
 	ceilHit:Destroy()
-
-	-- Set Aim Height
 	simulatedPos += Vector3.new(0,aimHeight,0)
-
-	-- Calculate Aim Position
 	local aimPosition = Vector3.new(simulatedPos.X,(x * math.tan(launchAngle))+startPosition.Y,simulatedPos.Z)
-	
-	-- Return Values
 	return path, aimPosition
 end
-
 return aimbot
