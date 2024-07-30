@@ -295,7 +295,8 @@ function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,proje
 	assert(typeof(projectileGravity) == "number","Projectile Gravity must be a number (studs/s²)")
 	local playerWalkSpeed = argumentTable.WalkSpeed or targetHum.WalkSpeed
 	local playerJumpPower = argumentTable.JumpPower or targetHum.JumpPower
-	local predictSpamJump = argumentTable.PredictSpamJump or false
+	local predictJump = argumentTable.PredictJump or false
+	local alwaysJumping = argumentTable.AlwaysJumping or false
 	local gravity = argumentTable.Gravity or workspace.Gravity
 	local ping = argumentTable.Ping or 50
 	local aimHeight = argumentTable.AimHeight or 0
@@ -315,7 +316,8 @@ function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,proje
 	end
 	assert(typeof(playerWalkSpeed) == "number","WalkSpeed must be a number (studs/s)")
 	assert(typeof(playerJumpPower) == "number","JumpPower must be a number (studs/s)")
-	assert(typeof(predictSpamJump) == "boolean","Predict Spam Jump must be a boolean")
+	assert(typeof(predictJump) == "boolean","Predict Jump must be a boolean")
+	assert(typeof(alwaysJumping) == "boolean","Always Jumping must be a boolean")
 	assert(typeof(gravity) == "number","Gravity must be a number (studs/s²)")
 	assert(typeof(ignoreCantCollide) == "boolean","IgnoreCanCollide must be a boolean")
 	assert(typeof(ping) == "number","Ping must be a number (ms)")
@@ -596,7 +598,7 @@ function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,proje
 				frictionDeceleration = 750
 				simulatedPos = Vector3.new(simulatedPos.X,highest + 3,simulatedPos.Z)
 				simulatedVel *=  Vector3.new(1,0,1)
-				if predictSpamJump and targetHum.Jump then
+				if predictJump and targetHum.Jump or alwaysJumping then
 					simulatedVel = Vector3.new(simulatedVel.X,playerJumpPower,simulatedVel.Z)
 				end
 				updatePositions()
