@@ -364,6 +364,7 @@ function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,proje
 	end
 	local function checkTouchingParts(tab,ignoreDescendantsInstances)
 		local touchingParts = {}
+		local touchingTrussLadder = false
 		local function checkInsideIgnoreList(obj)
 			for _, v in pairs(ignoreDescendantsInstances) do
 				if obj:IsDescendantOf(v) then
@@ -375,9 +376,12 @@ function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,proje
 		for _, v in pairs(tab) do
 			if not table.find(ignoreDescendantsInstances,v) and v ~= floorHit and v ~= wallHit and v ~= ceilHit and not v:IsDescendantOf(targetCharacter) and (not LocalPlayer.Character or not v:IsDescendantOf(LocalPlayer.Character)) and not checkInsideIgnoreList(v) and (not ignoreCantCollide or v.CanCollide) then
 				table.insert(touchingParts,v)
+				if v.ClassName == "TrussPart" then
+					touchingTrussLadder = true
+				end
 			end
 		end
-		return touchingParts
+		return touchingParts, touchingTrussLadder
 	end
 	local function updatePositions()
 		floorHit.Position = simulatedPos - Vector3.new(0,2,0)
@@ -566,23 +570,27 @@ function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,proje
 			simulatedPos = Vector3.new(simulatedPos.X,checkCeilIntercept.Position.Y - 2,simulatedPos.Z)
 		end
 		updatePositions()
-		local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
+		local wallTouchingParts, touchingTrussLadder = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 		if #wallTouchingParts > 0 then
-			local dir = CFrame.new(prevSimulatedPos,simulatedPos).LookVector.Unit
-			simulatedPos += Vector3.new(-dir.X,0,0)
-			updatePositions()
-			local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
-			if #wallTouchingParts > 0 then
-				simulatedPos += Vector3.new(dir.X,0,-dir.Z)
+			if touchingTrussLadder then
+				simulatedVel = Vector3.new(0,targetHum.WalkSpeed,0)
+			else
+				local dir = CFrame.new(prevSimulatedPos,simulatedPos).LookVector.Unit
+				simulatedPos += Vector3.new(-dir.X,0,0)
 				updatePositions()
 				local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 				if #wallTouchingParts > 0 then
-					simulatedPos = prevSimulatedPos
+					simulatedPos += Vector3.new(dir.X,0,-dir.Z)
+					updatePositions()
+					local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
+					if #wallTouchingParts > 0 then
+						simulatedPos = prevSimulatedPos
+					end
 				end
 			end
 		end
-		local floorTouchingParts = checkTouchingParts(floorHit:GetTouchingParts(),ignoreList)
-		if #floorTouchingParts > 0 and simulatedVel.Y <= interval then
+		local floorTouchingParts, touchingTrussLadder = checkTouchingParts(floorHit:GetTouchingParts(),ignoreList)
+		if not touchingTrussLadder and #floorTouchingParts > 0 and simulatedVel.Y <= interval then
 			local highest
 			for _, i in pairs(floorTouchingParts) do
 				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y - 1 > i.Position.Y + i.Size.Y / 2 and (not highest or i.Position.Y + i.Size.Y / 2 > highest) then
@@ -606,8 +614,8 @@ function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,proje
 				frictionDeceleration = 142
 			end
 		end
-		local ceilTouchingParts = checkTouchingParts(ceilHit:GetTouchingParts(),ignoreList)
-		if #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then
+		local ceilTouchingParts, touchingTrussLadder = checkTouchingParts(ceilHit:GetTouchingParts(),ignoreList)
+		if not touchingTrussLadder and #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then
 			local lowest
 			for _, i in pairs(floorTouchingParts) do
 				if (i.ClassName == "Part" or i.ClassName == "SpawnLocation") and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1.9 < i.Position.Y - i.Size.Y / 2 and (not lowest or i.Position.Y - i.Size.Y / 2 < lowest) then
