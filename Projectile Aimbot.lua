@@ -568,12 +568,12 @@ function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,proje
 		updatePositions()
 		local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 		if #wallTouchingParts > 0 then
-			local dir = CFrame.new(prevSimulatedPos,simulatedPos).LookVector
-			simulatedPos += Vector3.new(prevSimulatedPos.X - simulatedPos.X,0,0)
+			local dir = CFrame.new(prevSimulatedPos,simulatedPos).LookVector.Unit
+			simulatedPos += Vector3.new(-dir.X,0,0)
 			updatePositions()
 			local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 			if #wallTouchingParts > 0 then
-				simulatedPos -= Vector3.new(prevSimulatedPos.X - simulatedPos.X,0,-(prevSimulatedPos.Z - simulatedPos.Z))
+				simulatedPos += Vector3.new(dir.X,0,-dir.Z)
 				updatePositions()
 				local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 				if #wallTouchingParts > 0 then
