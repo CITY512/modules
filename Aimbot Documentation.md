@@ -23,7 +23,7 @@ local calculatedpath, aimvector = Aimbot:Compute(startPosition,targetCharacter,p
 ```
 ### Display Calculated Movements
 ```lua
-if path then
+if calculatedpath and #calculatedpath > 0 then
 	local hue = 0
 	local container = Instance.new("Folder", workspace)
 	container.Name = "path"
