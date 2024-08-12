@@ -9,6 +9,7 @@ local path, aimvector = Aimbot:Compute(startPosition,targetCharacter,projectileS
 	WalkSpeed = 16;
 	JumpPower = 50;
 	PredictSpamJump = false;
+	AlwaysJumping = false;
 	Gravity = workspace.Gravity;
 	Ping = 50; -- ms
 	AimHeight = 0;
