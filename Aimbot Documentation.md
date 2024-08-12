@@ -6,7 +6,7 @@ local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY51
 ## Aimbot
 ```lua
 -- NOTE: if startPosition, targetCharacter, projectileSpeed, projectileGravity is nil, function returns an error
-local path, aimvector = Aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectileGravity,{
+local calculatedpath, aimvector = Aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectileGravity,{
 	WalkSpeed = 16;
 	JumpPower = 50;
 	PredictSpamJump = false;
