@@ -265,7 +265,7 @@ local Materials = {
 		["FrictionWeight"] = 1;
 	};
 }
-function aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity,argumentTable)
+function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectileGravity,argumentTable)
 	local LocalPlayer
 	if game.Players.LocalPlayer then
 		LocalPlayer = game.Players.LocalPlayer
