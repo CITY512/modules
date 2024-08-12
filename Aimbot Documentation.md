@@ -5,7 +5,7 @@ local aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY51
 ```
 ## Aimbot
 ```lua
-local path, aimVector = aimbot:ComputeAsync(startPosition,targetCharacter,projectileSpeed,projectileGravity,{
+local path, aimvector = aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectileGravity,{
 	WalkSpeed = 16;
 	JumpPower = 50;
 	PredictSpamJump = false;
@@ -46,9 +46,9 @@ end
 ```
 ### Display Aim Position
 ```lua
-if aimVector then
+if aimvector then
 	local container = Instance.new("Folder", workspace)
-	container.Name = "aimpos"
+	container.Name = "aimvector"
 	local part = Instance.new("Part", container)
 	part.Name = "aimpos"
 	part.Color = Color3.new(0,0,0)
