@@ -2,7 +2,7 @@
 ## Main Module
 ### Credits to "inkvy" on ROBLOX for making this aimbot
 ```lua
-local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY512/modules/main/Projectile%20Aimbot.lua"))()
+local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY512/modules/main/Projectile%20Aimbot/Projectile%20Aimbot.lua"))()
 ```
 ## Aimbot
 ```lua
