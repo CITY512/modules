@@ -1,3 +1,4 @@
+-- made by inkvy
 local aimbot = {}
 local Materials = {
 	["Asphalt"] = {
