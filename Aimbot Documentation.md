@@ -1,5 +1,6 @@
 # Projectile Aimbot Documentation
 ## Main Module
+### Credits to "inkvy" on ROBLOX for making this aimbot
 ```lua
 local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY512/modules/main/Projectile%20Aimbot.lua"))()
 ```
@@ -63,4 +64,3 @@ if aimvector then
 	part.BottomSurface = Enum.SurfaceType.Smooth
 end
 ```
-### Credits to "inkvy" on ROBLOX for making this aimbot
