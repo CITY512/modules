@@ -63,3 +63,4 @@ if aimvector then
 	part.BottomSurface = Enum.SurfaceType.Smooth
 end
 ```
+### Credits to "inkvy" on ROBLOX for making this aimbot
