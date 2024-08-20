@@ -305,9 +305,9 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	local ignoreList = argumentTable.IgnoreList or {}
 	local interval = argumentTable.Interval or 1/80
 	local maxSimulationTime = argumentTable.MaxSimulationTime or 60
-	local ignoreCantCollide = argumentTable.IgnoreCantCollide
-	if ignoreCantCollide ~= false then
-		ignoreCantCollide = true
+	local respectCanCollide = argumentTable.RespectCanCollide
+	if respectCanCollide ~= false then
+		respectCanCollide = true
 	end
 	assert(interval > 0,"INTERVAlS CANNOT NOT BE 0 NOR NEGATIVE")
 	assert(ping >= 0,"PING CANNOT BE NEGATIVE")
@@ -320,7 +320,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	assert(typeof(predictJump) == "boolean","Predict Jump must be a boolean")
 	assert(typeof(alwaysJumping) == "boolean","Always Jumping must be a boolean")
 	assert(typeof(gravity) == "number","Gravity must be a number (studs/s²)")
-	assert(typeof(ignoreCantCollide) == "boolean","IgnoreCanCollide must be a boolean")
+	assert(typeof(respectCanCollide) == "boolean","IgnoreCanCollide must be a boolean")
 	assert(typeof(ping) == "number","Ping must be a number (ms)")
 	assert(typeof(aimHeight) == "number","Aim Height must be a number (studs)")
 	assert(typeof(isAGun) == "boolean","IsAGun must be a boolean")
@@ -533,41 +533,27 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		if isAGun then
 			launchAngle = math.atan(y/x)
 			projDuration = ping / 1000
-			if projDuration - simulatedTime <= interval then
-				interval = projDuration - simulatedTime
-			else
-				interval = originalInterval
-			end
 		else
-			if projectileGravity ~= 0 then
-				launchAngle = math.atan((v^2 - math.sqrt(v^4 - pg*(pg*x^2 + 2*y*v^2))) / (pg*x))
-			else
-				launchAngle = math.atan(y/x)
-			end
+			launchAngle = projectileGravity ~= 0 and math.atan((v^2 - math.sqrt(v^4 - pg*(pg*x^2 + 2*y*v^2))) / (pg*x)) or math.atan(y/x)
 			projDuration = x / math.cos(launchAngle) / v + ping / 1000
-			if projDuration - simulatedTime <= interval then
-				interval = projDuration - simulatedTime
-			else
-				interval = originalInterval
-			end
 		end
+		interval = projDuration - simulatedTime <= interval and projDuration - simulatedTime or originalInterval	
 		simulatedPos -= Vector3.new(0,aimHeight,0)
 		if simulatedTime >= projDuration or simulatedTime >= maxSimulationTime or simulatedPos.Y <= workspace.FallenPartsDestroyHeight then break end
 		prevSimulatedPos = simulatedPos
-		if walkToPoint ~= Vector3.new(0,0,0) then
-			moveDirection = CFrame.new(targetRoot.Position * Vector3.new(1,0,1), walkToPoint * Vector3.new(1,0,1)).LookVector
-		end
+		moveDirection = walkToPoint ~= Vector3.new(0,0,0) and CFrame.new(targetRoot.Position * Vector3.new(1,0,1), walkToPoint * Vector3.new(1,0,1)).LookVector or moveDirection
 		simulationStep()
 		simulatedVel -= Vector3.new(0,gravity*interval,0)
 		local raycastParams = RaycastParams.new()
 		raycastParams.FilterDescendantsInstances = simulationIgnoreList
 		raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+		raycastParams.RespectCanCollide = respectCanCollide
 		local checkFloorIntercept = workspace:Raycast(simulatedPos - Vector3.new(0,3,0),(prevSimulatedPos - Vector3.new(0,3,0)) - (simulatedPos - Vector3.new(0,3,0)),raycastParams)
 		local checkWallIntercept = workspace:Raycast(simulatedPos,prevSimulatedPos - simulatedPos,raycastParams)
 		local checkCeilIntercept = workspace:Raycast(simulatedPos + Vector3.new(0,2,0),(prevSimulatedPos + Vector3.new(0,2,0)) - (simulatedPos + Vector3.new(0,2,0)),raycastParams)
-		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y and checkFloorIntercept.Instance and (not ignoreCantCollide or checkFloorIntercept.Instance.CanCollide) then
+		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y then
 			simulatedPos = Vector3.new(simulatedPos.X,checkFloorIntercept.Position.Y + 3,simulatedPos.Z)
-		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y and checkCeilIntercept.Instance and (not ignoreCantCollide or checkCeilIntercept.Instance.CanCollide) then
+		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y then
 			simulatedPos = Vector3.new(simulatedPos.X,checkCeilIntercept.Position.Y - 2,simulatedPos.Z)
 		end
 		updatePositions()
