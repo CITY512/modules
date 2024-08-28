@@ -326,6 +326,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	assert(typeof(isAGun) == "boolean","IsAGun must be a boolean")
 	assert(typeof(interval) == "number","Interval must be a number")
 	assert(typeof(maxSimulationTime) == "number","Maximum Calculations must be a number")
+	local starttick = tick()
 	local originalInterval = interval
 	local simulatedPos = targetRoot.Position
 	local simulatedVel = targetRoot.Velocity
@@ -375,7 +376,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 			return false
 		end
 		for _, v in pairs(tab) do
-			if not table.find(ignoreDescendantsInstances,v) and v ~= floorHit and v ~= wallHit and v ~= ceilHit and not v:IsDescendantOf(targetCharacter) and (not LocalPlayer.Character or not v:IsDescendantOf(LocalPlayer.Character)) and not checkInsideIgnoreList(v) and (not ignoreCantCollide or v.CanCollide) then
+			if not table.find(ignoreDescendantsInstances,v) and v ~= floorHit and v ~= wallHit and v ~= ceilHit and not v:IsDescendantOf(targetCharacter) and (not LocalPlayer.Character or not v:IsDescendantOf(LocalPlayer.Character)) and not checkInsideIgnoreList(v) and (not respectCanCollide or v.CanCollide) then
 				table.insert(touchingParts,v)
 				if v.ClassName == "TrussPart" then
 					touchingTrussLadder = true
@@ -527,15 +528,17 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		table.insert(simulationIgnoreList,LocalPlayer.Character)
 	end
 	while true do
+		local simulationtick = tick()
+		local tickdifference = (simulationtick - starttick)
 		simulatedPos += Vector3.new(0,aimHeight,0)
 		x = (Vector2.new(simulatedPos.X,simulatedPos.Z) - Vector2.new(startPosition.X,startPosition.Z)).Magnitude
 		y = simulatedPos.Y - startPosition.Y
 		if isAGun then
 			launchAngle = math.atan(y/x)
-			projDuration = ping / 1000
+			projDuration = ping / 1000 + tickdifference
 		else
 			launchAngle = projectileGravity ~= 0 and math.atan((v^2 - math.sqrt(v^4 - pg*(pg*x^2 + 2*y*v^2))) / (pg*x)) or math.atan(y/x)
-			projDuration = x / math.cos(launchAngle) / v + ping / 1000
+			projDuration = x / math.cos(launchAngle) / v + ping / 1000 + tickdifference
 		end
 		interval = projDuration - simulatedTime <= interval and projDuration - simulatedTime or originalInterval	
 		simulatedPos -= Vector3.new(0,aimHeight,0)
