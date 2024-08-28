@@ -326,7 +326,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	assert(typeof(isAGun) == "boolean","IsAGun must be a boolean")
 	assert(typeof(interval) == "number","Interval must be a number")
 	assert(typeof(maxSimulationTime) == "number","Maximum Calculations must be a number")
-	local starttick = tick()
+	local startTick = tick()
 	local originalInterval = interval
 	local simulatedPos = targetRoot.Position
 	local simulatedVel = targetRoot.Velocity
@@ -340,7 +340,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	local pg = projectileGravity
 	local v = projectileSpeed
 	local launchAngle
-	local projDuration
+	local travelTime
 	local x
 	local y
 	local floorHit = Instance.new("Part", workspace)
@@ -475,7 +475,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		elseif typ == 2 then
 			dirY = 1
 		end
-		local priorityray
+		local priorityRay
 		local rot = floorHit.Orientation.Y
 		local function getPosition(offset,rot)
 			local positionMatrix = {
@@ -504,19 +504,19 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		local ray3 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
 		local x,z = getPosition(Vector2.new(-0.9375,-0.4375),-rot)
 		local ray4 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-		if ray1 and ray1.Position and (not priorityray or ((typ == 1 and ray1.Position.Y > priorityray) or (typ == 2 and ray1.Position < priorityray))) then
-			priorityray = ray1.Position.Y
+		if ray1 and ray1.Position and (not priorityRay or ((typ == 1 and ray1.Position.Y > priorityRay) or (typ == 2 and ray1.Position < priorityRay))) then
+			priorityRay = ray1.Position.Y
 		end
-		if ray2 and ray2.Position and (not priorityray or ((typ == 1 and ray2.Position.Y > priorityray) or (typ == 2 and ray2.Position < priorityray))) then
-			priorityray = ray2.Position.Y
+		if ray2 and ray2.Position and (not priorityRay or ((typ == 1 and ray2.Position.Y > priorityRay) or (typ == 2 and ray2.Position < priorityRay))) then
+			priorityRay = ray2.Position.Y
 		end
-		if ray3 and ray3.Position and (not priorityray or ((typ == 1 and ray3.Position.Y > priorityray) or (typ == 2 and ray3.Position < priorityray))) then
-			priorityray = ray3.Position.Y
+		if ray3 and ray3.Position and (not priorityRay or ((typ == 1 and ray3.Position.Y > priorityRay) or (typ == 2 and ray3.Position < priorityRay))) then
+			priorityRay = ray3.Position.Y
 		end
-		if ray4 and ray4.Position and (not priorityray or ((typ == 1 and ray4.Position.Y > priorityray) or (typ == 2 and ray4.Position < priorityray))) then
-			priorityray = ray4.Position.Y
+		if ray4 and ray4.Position and (not priorityRay or ((typ == 1 and ray4.Position.Y > priorityRay) or (typ == 2 and ray4.Position < priorityRay))) then
+			priorityRay = ray4.Position.Y
 		end
-		return priorityray
+		return priorityRay
 	end
 	if moveDirection == Vector3.new(0,0,0) then
 		if walkToPoint ~= Vector3.new(0,0,0) then
@@ -528,21 +528,21 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		table.insert(simulationIgnoreList,LocalPlayer.Character)
 	end
 	while true do
-		local simulationtick = tick()
-		local tickdifference = (simulationtick - starttick)
+		local simulationTick = tick()
+		local tickDifference = (simulationTick - startTick)
 		simulatedPos += Vector3.new(0,aimHeight,0)
 		x = (Vector2.new(simulatedPos.X,simulatedPos.Z) - Vector2.new(startPosition.X,startPosition.Z)).Magnitude
 		y = simulatedPos.Y - startPosition.Y
 		if isAGun then
 			launchAngle = math.atan(y/x)
-			projDuration = ping / 1000 + tickdifference
+			travelTime = ping / 1000 + tickDifference
 		else
 			launchAngle = projectileGravity ~= 0 and math.atan((v^2 - math.sqrt(v^4 - pg*(pg*x^2 + 2*y*v^2))) / (pg*x)) or math.atan(y/x)
-			projDuration = x / math.cos(launchAngle) / v + ping / 1000 + tickdifference
+			travelTime = x / math.cos(launchAngle) / v + ping / 1000 + tickDifference
 		end
-		interval = projDuration - simulatedTime <= interval and projDuration - simulatedTime or originalInterval	
+		interval = travelTime - simulatedTime <= interval and travelTime - simulatedTime or originalInterval	
 		simulatedPos -= Vector3.new(0,aimHeight,0)
-		if simulatedTime >= projDuration or simulatedTime >= maxSimulationTime or simulatedPos.Y <= workspace.FallenPartsDestroyHeight then break end
+		if simulatedTime >= travelTime or simulatedTime >= maxSimulationTime or simulatedPos.Y <= workspace.FallenPartsDestroyHeight then break end
 		prevSimulatedPos = simulatedPos
 		moveDirection = walkToPoint ~= Vector3.new(0,0,0) and CFrame.new(targetRoot.Position * Vector3.new(1,0,1), walkToPoint * Vector3.new(1,0,1)).LookVector or moveDirection
 		simulationStep()
@@ -625,7 +625,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		if #floorTouchingParts <= 0 and #ceilTouchingParts <= 0 then
 			frictionDeceleration = 142
 		end
-		if projDuration - simulatedTime >= originalInterval then
+		if travelTime - simulatedTime >= originalInterval then
 			table.insert(path,simulatedPos)
 		end
 		simulatedTime += interval
