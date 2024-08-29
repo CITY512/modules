@@ -298,28 +298,27 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	local playerJumpPower = argumentTable.JumpPower or targetHum.JumpPower
 	local predictJump = argumentTable.PredictJump or false
 	local alwaysJumping = argumentTable.AlwaysJumping or false
+	local predictLag = argumentTable.PredictLag == nil and true or argumentTable.PredictLag
 	local gravity = argumentTable.Gravity or workspace.Gravity
 	local ping = argumentTable.Ping or 50
 	local aimHeight = argumentTable.AimHeight or 0
 	local isAGun = argumentTable.IsAGun or false
 	local ignoreList = argumentTable.IgnoreList or {}
-	local interval = argumentTable.Interval or 1/80
-	local maxSimulationTime = argumentTable.MaxSimulationTime or 60
-	local respectCanCollide = argumentTable.RespectCanCollide
-	if respectCanCollide ~= false then
-		respectCanCollide = true
-	end
-	assert(interval > 0,"INTERVAlS CANNOT NOT BE 0 NOR NEGATIVE")
-	assert(ping >= 0,"PING CANNOT BE NEGATIVE")
-	assert(typeof(ignoreList) == "table","IgnoreList must be a table")
 	for _, i in pairs(ignoreList) do
 		assert(typeof(i) == "Instance","Ignore list elements must be Instances")
 	end
+	local interval = argumentTable.Interval or 1/80
+	local maxSimulationTime = argumentTable.MaxSimulationTime or 60
+	local respectCanCollide = argumentTable.RespectCanCollide == nil and true or argumentTable.RespectCanCollide
+	assert(interval > 0,"INTERVAlS CANNOT NOT BE 0 NOR NEGATIVE")
+	assert(ping >= 0,"PING CANNOT BE NEGATIVE")
+	assert(typeof(ignoreList) == "table","IgnoreList must be a table")
 	assert(typeof(playerWalkSpeed) == "number","WalkSpeed must be a number (studs/s)")
 	assert(typeof(playerJumpPower) == "number","JumpPower must be a number (studs/s)")
 	assert(typeof(predictJump) == "boolean","Predict Jump must be a boolean")
 	assert(typeof(alwaysJumping) == "boolean","Always Jumping must be a boolean")
 	assert(typeof(gravity) == "number","Gravity must be a number (studs/s²)")
+	assert(typeof(predictLag) == "boolean","PredictLag must be a boolean")
 	assert(typeof(respectCanCollide) == "boolean","IgnoreCanCollide must be a boolean")
 	assert(typeof(ping) == "number","Ping must be a number (ms)")
 	assert(typeof(aimHeight) == "number","Aim Height must be a number (studs)")
