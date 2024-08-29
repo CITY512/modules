@@ -528,7 +528,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	end
 	while true do
 		local simulationTick = tick()
-		local tickDifference = (simulationTick - startTick)
+		local tickDifference = predictLag and (simulationTick - startTick) or 0
 		simulatedPos += Vector3.new(0,aimHeight,0)
 		x = (Vector2.new(simulatedPos.X,simulatedPos.Z) - Vector2.new(startPosition.X,startPosition.Z)).Magnitude
 		y = simulatedPos.Y - startPosition.Y
