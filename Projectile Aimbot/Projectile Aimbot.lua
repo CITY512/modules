@@ -1,3 +1,4 @@
+
 -- made by inkvy
 local aimbot = {}
 local Materials = {
@@ -393,6 +394,11 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		return (math.abs(basePart.Orientation.X) ~= 0 and math.abs(basePart.Orientation.X) ~= 180) and (math.abs(basePart.Orientation.Z) ~= 0 and math.abs(basePart.Orientation.Z) ~= 180)
 	end
 	local function simulationStep()
+		simulatedPos += Vector3.new(
+			simulatedVel.X*interval + frictionDeceleration*moveDirection.X*interval^2/2,
+			simulatedVel.Y*interval + -gravity*interval^2/2,
+			simulatedVel.Z*interval + frictionDeceleration*moveDirection.Z*interval^2/2
+		)
 		local function calculateMoveDirection(axis)
 			if axis == "X" then
 				local xdir = moveDirection.X
@@ -459,11 +465,6 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 				end
 			end
 		end
-		simulatedPos += Vector3.new(
-			simulatedVel.X*interval + frictionDeceleration*moveDirection.X*interval^2/2,
-			simulatedVel.Y*interval + -gravity*interval^2/2,
-			simulatedVel.Z*interval + frictionDeceleration*moveDirection.Z*interval^2/2
-		)
 		calculateVelocityOnAxis("X")
 		calculateVelocityOnAxis("Z")
 	end
@@ -634,6 +635,9 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	ceilHit:Destroy()
 	simulatedPos += Vector3.new(0,aimHeight,0)
 	local aimPosition = Vector3.new(simulatedPos.X,(x * math.tan(launchAngle))+startPosition.Y,simulatedPos.Z)
+	if aimPosition ~= aimPosition then
+		aimPosition = nil
+	end
 	return path, aimPosition
 end
 return aimbot
