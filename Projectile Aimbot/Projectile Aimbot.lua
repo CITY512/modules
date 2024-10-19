@@ -1,5 +1,3 @@
-
--- made by inkvy
 local aimbot = {}
 function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectileGravity,argumentTable)
 	local LocalPlayer
@@ -209,48 +207,13 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		elseif typ == 2 then
 			dirY = 1
 		end
-		local priorityRay
-		local rot = floorHit.Orientation.Y
-		local function getPosition(offset,rot)
-			local positionMatrix = {
-				{offset.X},
-				{offset.Y}
-			}
-			local rotationMatrix = {
-				{math.cos(math.rad(rot)),-math.sin(math.rad(rot))},
-				{math.sin(math.rad(rot)),math.cos(math.rad(rot))}
-			}
-			local resultMatrix = {
-				{rotationMatrix[1][1] * positionMatrix[1][1] + rotationMatrix[1][2] * positionMatrix[2][1]},
-				{rotationMatrix[2][1] * positionMatrix[1][1] + rotationMatrix[2][2] * positionMatrix[2][1]}
-			}
-			local x,z = floorHit.Position.X + resultMatrix[1][1],floorHit.Position.Z + resultMatrix[2][1]
-			return x,z
-		end
 		local params = RaycastParams.new()
 		params.FilterDescendantsInstances = {obj}
 		params.FilterType = Enum.RaycastFilterType.Include
-		local x,z = getPosition(Vector2.new(0.9375,0.4375),-rot)
-		local ray1 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-		local x,z = getPosition(Vector2.new(-0.9375,0.4375),-rot)
-		local ray2 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-		local x,z = getPosition(Vector2.new(0.9375,-0.4375),-rot)
-		local ray3 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-		local x,z = getPosition(Vector2.new(-0.9375,-0.4375),-rot)
-		local ray4 = workspace:Raycast(Vector3.new(x,simulatedPos.Y + dirY / math.abs(dirY),z),Vector3.new(0,dirY,0),params)
-		if ray1 and ray1.Position and (not priorityRay or ((typ == 1 and ray1.Position.Y > priorityRay) or (typ == 2 and ray1.Position < priorityRay))) then
-			priorityRay = ray1.Position.Y
+		local blockcast = workspace:Blockcast(CFrame.new(Vector3.new(simulatedPos.X,simulatedPos.Y + dirY / math.abs(dirY),simulatedPos.Z)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0),Vector3.new(2, 0.002, 1),Vector3.new(0,dirY,0),params)
+		if blockcast and blockcast.Position then
+			return blockcast.Position.Y
 		end
-		if ray2 and ray2.Position and (not priorityRay or ((typ == 1 and ray2.Position.Y > priorityRay) or (typ == 2 and ray2.Position < priorityRay))) then
-			priorityRay = ray2.Position.Y
-		end
-		if ray3 and ray3.Position and (not priorityRay or ((typ == 1 and ray3.Position.Y > priorityRay) or (typ == 2 and ray3.Position < priorityRay))) then
-			priorityRay = ray3.Position.Y
-		end
-		if ray4 and ray4.Position and (not priorityRay or ((typ == 1 and ray4.Position.Y > priorityRay) or (typ == 2 and ray4.Position < priorityRay))) then
-			priorityRay = ray4.Position.Y
-		end
-		return priorityRay
 	end
 	if moveDirection == Vector3.new(0,0,0) then
 		if walkToPoint ~= Vector3.new(0,0,0) then
@@ -285,9 +248,8 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		raycastParams.FilterDescendantsInstances = simulationIgnoreList
 		raycastParams.FilterType = Enum.RaycastFilterType.Exclude
 		raycastParams.RespectCanCollide = respectCanCollide
-		local checkFloorIntercept = workspace:Raycast(simulatedPos - Vector3.new(0,3,0),(prevSimulatedPos - Vector3.new(0,3,0)) - (simulatedPos - Vector3.new(0,3,0)),raycastParams)
-		local checkWallIntercept = workspace:Raycast(simulatedPos,prevSimulatedPos - simulatedPos,raycastParams)
-		local checkCeilIntercept = workspace:Raycast(simulatedPos + Vector3.new(0,2,0),(prevSimulatedPos + Vector3.new(0,2,0)) - (simulatedPos + Vector3.new(0,2,0)),raycastParams)
+		local checkFloorIntercept = workspace:Blockcast(CFrame.new(prevSimulatedPos - Vector3.new(0,1.001,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0),Vector3.new(2, 0.002, 1),(prevSimulatedPos - Vector3.new(0,1.001,0)) - (simulatedPos - Vector3.new(0,1.001,0)),raycastParams)
+		local checkCeilIntercept = workspace:Blockcast(CFrame.new(prevSimulatedPos + Vector3.new(0,1.001,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0),Vector3.new(2, 0.002, 1),(prevSimulatedPos + Vector3.new(0,1.001,0)) - (simulatedPos + Vector3.new(0,1.001,0)),raycastParams)
 		if checkFloorIntercept and checkFloorIntercept.Position and checkFloorIntercept.Position.Y <= prevSimulatedPos.Y then
 			simulatedPos = Vector3.new(simulatedPos.X,checkFloorIntercept.Position.Y + 3,simulatedPos.Z)
 		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y then
