@@ -246,7 +246,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		simulatedVel -= Vector3.new(0,gravity*interval,0)
 		local raycastParams = RaycastParams.new()
 		raycastParams.FilterDescendantsInstances = simulationIgnoreList
-		raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+		raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
 		raycastParams.RespectCanCollide = respectCanCollide
 		local checkFloorIntercept = workspace:Blockcast(CFrame.new(prevSimulatedPos - Vector3.new(0,1.001,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0),Vector3.new(2, 0.002, 1),(prevSimulatedPos - Vector3.new(0,1.001,0)) - (simulatedPos - Vector3.new(0,1.001,0)),raycastParams)
 		local checkCeilIntercept = workspace:Blockcast(CFrame.new(prevSimulatedPos + Vector3.new(0,1.001,0)) * CFrame.Angles(0,math.rad(targetRoot.Orientation.Y),0),Vector3.new(2, 0.002, 1),(prevSimulatedPos + Vector3.new(0,1.001,0)) - (simulatedPos + Vector3.new(0,1.001,0)),raycastParams)
