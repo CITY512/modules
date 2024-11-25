@@ -1,5 +1,5 @@
-local aimbot = {}
-function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectileGravity,argumentTable)
+local module = {}
+function module:Compute(startPosition,targetCharacter,projectileSpeed,projectileGravity,argumentTable)
 	local LocalPlayer
 	if game.Players.LocalPlayer then
 		LocalPlayer = game.Players.LocalPlayer
@@ -117,7 +117,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		end
 		return touchingParts, touchingTrussLadder
 	end
-	local function updatePositions()
+	local function updateIndicatorPosition()
 		floorHit.Position = simulatedPos - Vector3.new(0,2,0)
 		wallHit.Position = simulatedPos
 		ceilHit.Position = simulatedPos + Vector3.new(0,1.5,0)
@@ -255,19 +255,20 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		elseif checkCeilIntercept and checkCeilIntercept.Position and checkCeilIntercept.Position.Y >= prevSimulatedPos.Y then
 			simulatedPos = Vector3.new(simulatedPos.X,checkCeilIntercept.Position.Y - 2,simulatedPos.Z)
 		end
-		updatePositions()
+		updateIndicatorPosition()
 		local wallTouchingParts, touchingTrussLadder = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 		if #wallTouchingParts > 0 then
 			if touchingTrussLadder then
 				simulatedVel = Vector3.new(0,targetHum.WalkSpeed,0)
 			else
 				local dir = CFrame.new(prevSimulatedPos,simulatedPos).LookVector.Unit
+				if dir ~= dir then dir = Vector3.new(0,0,0) end
 				simulatedPos += Vector3.new(-dir.X,0,0)
-				updatePositions()
+				updateIndicatorPosition()
 				local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 				if #wallTouchingParts > 0 then
 					simulatedPos += Vector3.new(dir.X,0,-dir.Z)
-					updatePositions()
+					updateIndicatorPosition()
 					local wallTouchingParts = checkTouchingParts(wallHit:GetTouchingParts(),ignoreList)
 					if #wallTouchingParts > 0 then
 						simulatedPos = prevSimulatedPos
@@ -295,7 +296,7 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 				if predictJump and targetHum.Jump or alwaysJumping then
 					simulatedVel = Vector3.new(simulatedVel.X,playerJumpPower,simulatedVel.Z)
 				end
-				updatePositions()
+				updateIndicatorPosition()
 			else
 				frictionDeceleration = 142
 			end
@@ -336,4 +337,4 @@ function aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	end
 	return path, aimPosition
 end
-return aimbot
+return module
