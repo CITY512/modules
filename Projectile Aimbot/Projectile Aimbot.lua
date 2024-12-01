@@ -37,8 +37,8 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 	local aimHeight = argumentTable.AimHeight or 0
 	local isAGun = argumentTable.IsAGun or false
 	local ignoreList = argumentTable.IgnoreList or {}
-	for _, i in pairs(ignoreList) do
-		assert(typeof(i) == "Instance","Ignore list elements must be Instances")
+	for _, v in pairs(ignoreList) do
+		assert(typeof(v) == "Instance","Ignore list elements must be Instances")
 	end
 	local interval = argumentTable.Interval or 1/80
 	local maxSimulationTime = argumentTable.MaxSimulationTime or 60
@@ -123,7 +123,7 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		ceilHit.Position = simulatedPos + Vector3.new(0,1.5,0)
 	end
 	local function checkOrientation(basePart)
-		return (math.abs(basePart.Orientation.X) ~= 0 and math.abs(basePart.Orientation.X) ~= 180) and (math.abs(basePart.Orientation.Z) ~= 0 and math.abs(basePart.Orientation.Z) ~= 180)
+		return (math.abs(basePart.Orientation.X) == 0 or math.abs(basePart.Orientation.X) == 180) and (math.abs(basePart.Orientation.Z) == 0 or math.abs(basePart.Orientation.Z) == 180)
 	end
 	local function simulationStep()
 		simulatedPos += Vector3.new(
@@ -275,11 +275,12 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		local floorTouchingParts, touchingTrussLadder = checkTouchingParts(floorHit:GetTouchingParts(),ignoreList)
 		if not touchingTrussLadder and #floorTouchingParts > 0 and simulatedVel.Y <= interval then
 			local highest
-			for _, i in pairs(floorTouchingParts) do
-				if i.ClassName == "Part" and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y - 1 > i.Position.Y + i.Size.Y / 2 and (not highest or i.Position.Y + i.Size.Y / 2 > highest) then
-					highest = i.Position.Y + i.Size.Y / 2
+			for _, v in pairs(floorTouchingParts) do
+				if v.ClassName == "Part" and v.Shape == Enum.PartType.Block and checkOrientation(v) and simulatedPos.Y - 1 > v.Position.Y + v.Size.Y / 2 and (not highest or v.Position.Y + v.Size.Y / 2 > highest) then
+					highest = v.Position.Y + v.Size.Y / 2
+					print(v)
 				else
-					local height = checkHighestLowest(i,1)
+					local height = checkHighestLowest(v,1)
 					if height and (not highest or height > highest) then
 						highest = height
 					end
@@ -300,11 +301,12 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		local ceilTouchingParts, touchingTrussLadder = checkTouchingParts(ceilHit:GetTouchingParts(),ignoreList)
 		if not touchingTrussLadder and #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then
 			local lowest
-			for _, i in pairs(floorTouchingParts) do
-				if (i.ClassName == "Part" or i.ClassName == "SpawnLocation") and i.Shape == Enum.PartType.Block and checkOrientation(i) and simulatedPos.Y + 1.9 < i.Position.Y - i.Size.Y / 2 and (not lowest or i.Position.Y - i.Size.Y / 2 < lowest) then
-					lowest = i.Position.Y - i.Size.Y / 2
+			for _, v in pairs(floorTouchingParts) do
+				if (v.ClassName == "Part" or v.ClassName == "SpawnLocation") and v.Shape == Enum.PartType.Block and checkOrientation(v) and simulatedPos.Y + 1.9 < v.Position.Y - v.Size.Y / 2 and (not lowest or v.Position.Y - v.Size.Y / 2 < lowest) then
+					lowest = v.Position.Y - v.Size.Y / 2
+					print(v)
 				else
-					local low = checkHighestLowest(i,2)
+					local low = checkHighestLowest(v,2)
 					if low and (not lowest or low < lowest) then
 						lowest = low
 					end
