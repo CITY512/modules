@@ -230,13 +230,8 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 		simulatedPos += Vector3.new(0,aimHeight,0)
 		x = (Vector2.new(simulatedPos.X,simulatedPos.Z) - Vector2.new(startPosition.X,startPosition.Z)).Magnitude
 		y = simulatedPos.Y - startPosition.Y
-		if isAGun then
-			launchAngle = math.atan(y/x)
-			travelTime = ping / 1000 + tickDifference
-		else
-			launchAngle = projectileGravity ~= 0 and math.atan((v^2 - math.sqrt(v^4 - pg*(pg*x^2 + 2*y*v^2))) / (pg*x)) or math.atan(y/x)
-			travelTime = x / math.cos(launchAngle) / v + ping / 1000 + tickDifference
-		end
+		launchAngle = projectileGravity ~= 0 and math.atan((v^2 - math.sqrt(v^4 - pg*(pg*x^2 + 2*y*v^2))) / (pg*x)) or math.atan(y/x)
+		travelTime = isAGun and ping / 1000 + tickDifference or x / math.cos(launchAngle) / v + ping / 1000 + tickDifference
 		interval = travelTime - simulatedTime <= interval and travelTime - simulatedTime or originalInterval	
 		simulatedPos -= Vector3.new(0,aimHeight,0)
 		if simulatedTime >= travelTime or simulatedTime >= maxSimulationTime or simulatedPos.Y <= workspace.FallenPartsDestroyHeight then break end
@@ -276,6 +271,7 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 				end
 			end
 		end
+		updateIndicatorPosition()
 		local floorTouchingParts, touchingTrussLadder = checkTouchingParts(floorHit:GetTouchingParts(),ignoreList)
 		if not touchingTrussLadder and #floorTouchingParts > 0 and simulatedVel.Y <= interval then
 			local highest
@@ -296,11 +292,11 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 				if predictJump and targetHum.Jump or alwaysJumping then
 					simulatedVel = Vector3.new(simulatedVel.X,playerJumpPower,simulatedVel.Z)
 				end
-				updateIndicatorPosition()
 			else
 				frictionDeceleration = 142
 			end
 		end
+		updateIndicatorPosition()
 		local ceilTouchingParts, touchingTrussLadder = checkTouchingParts(ceilHit:GetTouchingParts(),ignoreList)
 		if not touchingTrussLadder and #ceilTouchingParts > 0 and simulatedVel.Y >= -interval then
 			local lowest
