@@ -278,7 +278,6 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 			for _, v in pairs(floorTouchingParts) do
 				if v.ClassName == "Part" and v.Shape == Enum.PartType.Block and checkOrientation(v) and simulatedPos.Y - 1 > v.Position.Y + v.Size.Y / 2 and (not highest or v.Position.Y + v.Size.Y / 2 > highest) then
 					highest = v.Position.Y + v.Size.Y / 2
-					print(v)
 				else
 					local height = checkHighestLowest(v,1)
 					if height and (not highest or height > highest) then
@@ -304,7 +303,6 @@ function module:Compute(startPosition,targetCharacter,projectileSpeed,projectile
 			for _, v in pairs(floorTouchingParts) do
 				if (v.ClassName == "Part" or v.ClassName == "SpawnLocation") and v.Shape == Enum.PartType.Block and checkOrientation(v) and simulatedPos.Y + 1.9 < v.Position.Y - v.Size.Y / 2 and (not lowest or v.Position.Y - v.Size.Y / 2 < lowest) then
 					lowest = v.Position.Y - v.Size.Y / 2
-					print(v)
 				else
 					local low = checkHighestLowest(v,2)
 					if low and (not lowest or low < lowest) then
