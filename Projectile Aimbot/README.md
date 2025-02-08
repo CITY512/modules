@@ -10,7 +10,7 @@ local Aimbot = loadstring(game:HttpGet("https://raw.githubusercontent.com/CITY51
 local calculatedpath, aimvector = Aimbot:Compute(startPosition,targetCharacter,projectileSpeed,projectileGravity,{
 	WalkSpeed = 16;
 	JumpPower = 50;
-	PredictSpamJump = false;
+	PredictJump = false;
 	AlwaysJumping = false;
 	Gravity = workspace.Gravity;
 	Ping = 50; -- ms
@@ -19,7 +19,7 @@ local calculatedpath, aimvector = Aimbot:Compute(startPosition,targetCharacter,p
 	IgnoreList = {};
 	Interval = 1/80;
 	MaxSimulationTime = 60;
-	IgnoreCantCollide = true;
+	RespectCanCollide = true;
 })
 ```
 ### Display Calculated Movements
